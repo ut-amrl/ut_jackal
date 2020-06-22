@@ -50,7 +50,7 @@ TARGET_INCLUDE_DIRECTORIES(enml PRIVATE
     ${CERES_INCLUDE_DIRS})
 ADD_DEPENDENCIES(enml rosbuild_precompile)
 TARGET_LINK_LIBRARIES(enml ceres roslib roscpp ncurses pthread boost_system
-    ${LUA_LIBRARIES} rt popt glog rosbag X11 amrl_shared_lib
+    ${LUA_LIBRARIES} rt popt glog rosbag amrl_shared_lib
     ${BUILD_SPECIFIC_LIBRARIES})
 
 ROSBUILD_ADD_EXECUTABLE(navigation
@@ -64,5 +64,15 @@ TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
     config_reader/include
     ${LUA_INCLUDE_DIR})
 TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
-    rt glog rosbag X11 amrl_shared_lib ${LUA_LIBRARIES}
+    rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
+    ${BUILD_SPECIFIC_LIBRARIES})
+
+ROSBUILD_ADD_EXECUTABLE(autonomy_arbiter
+    autonomy_arbiter/autonomy_arbiter.cc)
+TARGET_INCLUDE_DIRECTORIES(autonomy_arbiter PRIVATE
+    shared_lib
+    config_reader/include
+    ${LUA_INCLUDE_DIR})
+TARGET_LINK_LIBRARIES(autonomy_arbiter gflags roslib roscpp pthread boost_system
+    rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
