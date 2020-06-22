@@ -1,0 +1,9 @@
+[submodule "enml"]
+	path = enml
+	url = git@github.com:ut-amrl/enml
+[submodule "shared_lib"]
+	path = shared_lib
+	url = git@github.com:ut-amrl/amrl_shared_lib
+[submodule "config_reader"]
+	path = config_reader
+	url = git@github.com:ut-amrl/config-reader
