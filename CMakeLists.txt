@@ -16,10 +16,6 @@ ENDIF()
 
 MESSAGE(STATUS "SOURCE DIR: ${PROJECT_SOURCE_DIR}")
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 
 FIND_PACKAGE(Lua51 REQUIRED)
 FIND_PACKAGE(Eigen3 REQUIRED)
@@ -30,9 +26,14 @@ ROSBUILD_INIT()
 SET(ROS_BUILD_STATIC_LIBS true)
 SET(ROS_BUILD_SHARED_LIBS false)
 
-ADD_SUBDIRECTORY(enml/src/shared)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-ROSBUILD_ADD_EXECUTABLE(enml_main
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
+
+ADD_SUBDIRECTORY(shared_lib)
+
+ROSBUILD_ADD_EXECUTABLE(enml
     enml/src/non_markov_localization_main.cpp
     enml/src/non_markov_localization.cpp
     enml/src/kdtree.cpp
@@ -41,26 +42,27 @@ ROSBUILD_ADD_EXECUTABLE(enml_main
     enml/src/vector_map/vector_map.cc
     enml/src/visualization/visualization.cc
     enml/src/visualization/gui_helpers.cc)
-TARGET_INCLUDE_DIRECTORIES(enml_main PRIVATE
+TARGET_INCLUDE_DIRECTORIES(enml PRIVATE
     enml/src
     enml/src/shared
     enml/src/config-reader/include
     ${LUA_INCLUDE_DIR}
     ${CERES_INCLUDE_DIRS})
-ADD_DEPENDENCIES(enml_main rosbuild_precompile)
-TARGET_LINK_LIBRARIES(enml_main ceres roslib roscpp ncurses pthread boost_system ${LUA_LIBRARIES} rt popt
-    ${BUILD_SPECIFIC_LIBRARIES} glog rosbag X11 amrl-shared-lib)
+ADD_DEPENDENCIES(enml rosbuild_precompile)
+TARGET_LINK_LIBRARIES(enml ceres roslib roscpp ncurses pthread boost_system
+    ${LUA_LIBRARIES} rt popt glog rosbag X11 amrl_shared_lib
+    ${BUILD_SPECIFIC_LIBRARIES})
 
-ROSBUILD_ADD_EXECUTABLE(navigation_main
+ROSBUILD_ADD_EXECUTABLE(navigation
     navigation/src/navigation_main.cc
     navigation/src/navigation.cc
     navigation/src/visualization/visualization.cc
     navigation/src/vector_map/vector_map.cc)
-TARGET_INCLUDE_DIRECTORIES(navigation_main PRIVATE
+TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
     navigation/src
     shared_lib
     config_reader/include
     ${LUA_INCLUDE_DIR})
-TARGET_LINK_LIBRARIES(navigation_main gflags roslib roscpp pthread boost_system
-    rt glog rosbag X11 amrl-shared-lib ${LUA_LIBRARIES}
+TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
+    rt glog rosbag X11 amrl_shared_lib ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
