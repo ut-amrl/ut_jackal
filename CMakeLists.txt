@@ -37,7 +37,6 @@ ROSBUILD_ADD_EXECUTABLE(enml
     enml/src/non_markov_localization_main.cpp
     enml/src/non_markov_localization.cpp
     enml/src/kdtree.cpp
-    enml/src/gui_publisher_helper.cpp
     enml/src/perception_2d.cpp
     enml/src/vector_map/vector_map.cc
     enml/src/visualization/visualization.cc
