@@ -75,3 +75,14 @@ TARGET_INCLUDE_DIRECTORIES(autonomy_arbiter PRIVATE
 TARGET_LINK_LIBRARIES(autonomy_arbiter gflags roslib roscpp pthread boost_system
     rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
+
+ROSBUILD_ADD_EXECUTABLE(gps_translator
+    gps/gps_translator.cc
+    visualization/visualization.cc)
+TARGET_INCLUDE_DIRECTORIES(gps_translator PRIVATE
+    shared_lib
+    config_reader/include
+    ${LUA_INCLUDE_DIR})
+TARGET_LINK_LIBRARIES(gps_translator gflags roslib roscpp pthread boost_system
+    rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
+    ${BUILD_SPECIFIC_LIBRARIES})
