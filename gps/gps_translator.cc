@@ -54,12 +54,12 @@ string GetMapFileFromName(const string& map) {
   return FLAGS_maps_dir + "/" + map + "/" + map + ".gpsmap.txt";
 }
 
-struct GPSToMetric {
+struct GPSTranslator {
   bool Load(const std::string& map) {
     const string file = GetMapFileFromName(map);
     ScopedFile fid(file, "r", true);
     if (fid() == nullptr) return false;
-    if (fscanf(fid(), "%lf, %lf, %lf", &gps_origin_latitude, 
+    if (fscanf(fid(), "%lf, %lf, %lf", &gps_origin_latitude,
         &gps_origin_longitude, &map_orientation) != 3) {
       return false;
     }
@@ -67,7 +67,7 @@ struct GPSToMetric {
     return true;
   }
 
-  Vector2d GpsToMetric(const double latitude, const double longitude) {
+  Vector2d GPSToMetric(const double latitude, const double longitude) {
     const double theta = DegToRad(latitude);
     const double c = std::cos(theta);
     const double s = std::sin(theta);
@@ -80,10 +80,22 @@ struct GPSToMetric {
     return Rotation2Dd(map_orientation) * Vector2d(x, y);
   }
 
+  void MetricToGPS(const Vector2d& loc, double* longitude, double* latitude) {
+    const double theta = DegToRad(gps_origin_latitude);
+    const double c = std::cos(theta);
+    const double s = std::sin(theta);
+    const double r = sqrt(Sq(wgs_84_a * wgs_84_b) / (Sq(c * wgs_84_b) + Sq(s * wgs_84_a)));
+    const double r1 = r * c;
+    const double dlat = loc.y() / r;
+    const double dlong = loc.x() / r1;
+    *longitude = gps_origin_longitude + dlong;
+    *latitude = gps_origin_latitude + dlat;
+  }
+
   double gps_origin_longitude;
   double gps_origin_latitude;
   double map_orientation;
-  
+
   // Earth geoid parameters from WGS 84 system
   // https://en.wikipedia.org/wiki/World_Geodetic_System#A_new_World_Geodetic_System:_WGS_84
   // a = Semimajor (Equatorial) axis
@@ -92,7 +104,7 @@ struct GPSToMetric {
   static constexpr double wgs_84_b = 6356752.314245;
 };
 
-GPSToMetric map_;
+GPSTranslator map_;
 ros::Publisher localization_pub_;
 ros::Publisher viz_pub_;
 amrl_msgs::VisualizationMsg viz_msg_;
@@ -101,7 +113,7 @@ amrl_msgs::Localization2DMsg localization_msg_;
 void GpsCallback(const NavSatFix& msg) {
   const bool verbose = FLAGS_v > 0;
   if (verbose) {
-    printf("Status:%d Service:%d Lat,Long:%12.8lf, %12.8lf Alt:%7.2lf", 
+    printf("Status:%d Service:%d Lat,Long:%12.8lf, %12.8lf Alt:%7.2lf",
           msg.status.status, msg.status.service,
           msg.latitude, msg.longitude, msg.altitude);
   }
@@ -109,32 +121,32 @@ void GpsCallback(const NavSatFix& msg) {
     if (verbose) printf("\n");
     return;
   }
-  const Vector2d p = map_.GpsToMetric(msg.latitude, msg.longitude);
+  const Vector2d p = map_.GPSToMetric(msg.latitude, msg.longitude);
   if (verbose) printf(" X,Y: %9.3lf,%9.3lf\n", p.x(), p.y());
   static const uint32_t kColor = 0x0000C0;
   visualization::ClearVisualizationMsg(viz_msg_);
-  visualization::DrawLine((p - Vector2d(0.4, 0)).cast<float>(), 
-                          (p + Vector2d(0.4, 0)).cast<float>(), 
+  visualization::DrawLine((p - Vector2d(0.4, 0)).cast<float>(),
+                          (p + Vector2d(0.4, 0)).cast<float>(),
                           kColor,
                           viz_msg_);
-  visualization::DrawLine((p - Vector2d(0, 0.4)).cast<float>(), 
-                          (p + Vector2d(0, 0.4)).cast<float>(), 
+  visualization::DrawLine((p - Vector2d(0, 0.4)).cast<float>(),
+                          (p + Vector2d(0, 0.4)).cast<float>(),
                           kColor,
                           viz_msg_);
-  visualization::DrawLine((p + Vector2d(0.5, 0.5)).cast<float>(), 
-                          (p + Vector2d(0.5, -0.5)).cast<float>(), 
+  visualization::DrawLine((p + Vector2d(0.5, 0.5)).cast<float>(),
+                          (p + Vector2d(0.5, -0.5)).cast<float>(),
                           kColor,
                           viz_msg_);
-  visualization::DrawLine((p + Vector2d(-0.5, 0.5)).cast<float>(), 
-                          (p + Vector2d(-0.5, -0.5)).cast<float>(), 
+  visualization::DrawLine((p + Vector2d(-0.5, 0.5)).cast<float>(),
+                          (p + Vector2d(-0.5, -0.5)).cast<float>(),
                           kColor,
                           viz_msg_);
-  visualization::DrawLine((p + Vector2d(-0.5, -0.5)).cast<float>(), 
-                          (p + Vector2d(0.5, -0.5)).cast<float>(), 
+  visualization::DrawLine((p + Vector2d(-0.5, -0.5)).cast<float>(),
+                          (p + Vector2d(0.5, -0.5)).cast<float>(),
                           kColor,
                           viz_msg_);
-  visualization::DrawLine((p + Vector2d(-0.5, 0.5)).cast<float>(), 
-                          (p + Vector2d(0.5, 0.5)).cast<float>(), 
+  visualization::DrawLine((p + Vector2d(-0.5, 0.5)).cast<float>(),
+                          (p + Vector2d(0.5, 0.5)).cast<float>(),
                           kColor,
                           viz_msg_);
   viz_pub_.publish(viz_msg_);
@@ -154,7 +166,7 @@ int main(int argc, char* argv[]) {
   ros::Subscriber gps_sub = n.subscribe(FLAGS_gps_topic, 1, &GpsCallback);
   ros_helpers::InitRosHeader("map", &localization_msg_.header);
   viz_msg_ = visualization::NewVisualizationMessage("map", "gps_translator");
-  localization_pub_ = 
+  localization_pub_ =
       n.advertise<amrl_msgs::Localization2DMsg>("gps_localization", 1);
   viz_pub_ = n.advertise<amrl_msgs::VisualizationMsg>("visualization", 1);
   CHECK(map_.Load(FLAGS_map));
