@@ -109,6 +109,7 @@ DEFINE_int32(num_options, 41, "Number of options to consider");
 
 // Name of topic to publish twist messages to.
 DEFINE_string(twist_drive_topic, "navigation/cmd_vel", "ROS topic to publish twist messages to.");
+DEFINE_string(ackermann_drive_topic, "ackermann_curvature_drive", "ROS topic to publish twist messages to.");
 
 // Option to disregard joystick safety for running in simulation.
 DEFINE_bool(no_joystick, false, "Disregards autonomy enable mode from joystick");
@@ -209,7 +210,7 @@ Navigation::Navigation(const string& map_file, ros::NodeHandle* n) :
     planning_domain_(map_file),
     enabled_(false) {
   ackermann_drive_pub_ = n->advertise<AckermannCurvatureDriveMsg>(
-      "ackermann_curvature_drive", 1);
+      FLAGS_ackermann_drive_topic, 1);
   twist_drive_pub_ = n->advertise<geometry_msgs::Twist>(
       FLAGS_twist_drive_topic, 1);
   status_pub_ = n->advertise<GoalStatus>(

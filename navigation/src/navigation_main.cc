@@ -32,7 +32,6 @@
 #include "gflags/gflags.h"
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
-#include "gflags/gflags.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -70,8 +69,11 @@ DEFINE_string(init_topic,
 // Name of topic controlling whether to enable autonomous nav or not.
 DEFINE_string(enable_topic, "autonomy_arbiter/enabled",
     "ROS topic that indicates whether autonomy is enabled or not.");
+DEFINE_string(maps_dir,
+              "enml/maps",
+              "Directory containing navigation map files");
 DEFINE_string(map,
-              "maps/Joydeepb-Home/Joydeepb-Home.navigation.txt",
+              "Joydeepb-Home",
               "Name of navigation map file");
 DECLARE_string(helpon);
 DECLARE_int32(v);
@@ -158,7 +160,7 @@ void LocalizationCallback(const amrl_msgs::Localization2DMsg& msg) {
   if (map != msg.map) {
     map = msg.map;
     const string map_file =
-        StringPrintf("maps/%s/%s.navigation.txt", map.c_str(), map.c_str());
+        FLAGS_maps_dir + StringPrintf("/%s/%s.navigation.txt", map.c_str(), map.c_str());
     navigation_->UpdateMap(map_file);
   }
 }
@@ -176,7 +178,9 @@ int main(int argc, char** argv) {
   // Initialize ROS.
   ros::init(argc, argv, "navigation", ros::init_options::NoSigintHandler);
   ros::NodeHandle n;
-  navigation_ = new Navigation(FLAGS_map, &n);
+  const string map_file = FLAGS_maps_dir +
+      StringPrintf("/%s/%s.navigation.txt", FLAGS_map.c_str(), FLAGS_map.c_str());
+  navigation_ = new Navigation(map_file, &n);
 
   ros::Subscriber velocity_sub =
       n.subscribe(FLAGS_odom_topic, 1, &OdometryCallback);
