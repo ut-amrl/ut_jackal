@@ -53,8 +53,8 @@ TARGET_LINK_LIBRARIES(enml ceres roslib roscpp ncurses pthread boost_system
     ${BUILD_SPECIFIC_LIBRARIES})
 
 ROSBUILD_ADD_EXECUTABLE(navigation
-    navigation/src/navigation_main.cc
-    navigation/src/navigation.cc
+    navigation/src/navigation/navigation_main.cc
+    navigation/src/navigation/navigation.cc
     navigation/src/visualization/visualization.cc
     navigation/src/vector_map/vector_map.cc)
 TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
