@@ -7,3 +7,6 @@
 [submodule "config_reader"]
 	path = config_reader
 	url = git@github.com:ut-amrl/config-reader
+[submodule "graph_navigation"]
+	path = graph_navigation
+	url = https://github.com/ut-amrl/graph_navigation.git
