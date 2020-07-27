@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
   ros::init(argc, argv, "status_translator");
   ros::NodeHandle n;
   ros::Subscriber status_sub = n.subscribe(FLAGS_input_topic, 1, &StatusCallback);
-  status_pub_ =  n.advertise<amrl_msgs::RobofleetStatus>("amrl_status", 1);
+  status_pub_ =  n.advertise<amrl_msgs::RobofleetStatus>(FLAGS_output_topic, 1);
 
   ros::spin();
   return 0;
