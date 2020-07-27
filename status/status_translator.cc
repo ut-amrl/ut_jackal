@@ -41,7 +41,7 @@ using std::string;
 using namespace math_util;
 
 DEFINE_string(input_topic, "/status", "ROS topic for jackal status messsages");
-DEFINE_string(output_topic, "/amrl_status", "ROS topic for AMRL status messages");
+DEFINE_string(output_topic, "/robofleet_status", "ROS topic for Robofleet status messages");
 
 ros::Publisher status_pub_;
 amrl_msgs::RobofleetStatus status_msg_;
