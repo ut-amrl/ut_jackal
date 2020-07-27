@@ -49,6 +49,7 @@ amrl_msgs::RobofleetStatus status_msg_;
 void StatusCallback(const jackal_msgs::Status& msg) {
   const bool verbose = FLAGS_v > 0;
   if (verbose) {
+    printf("Recieved a status message\n");
     // printf("Status:%d Service:%d Lat,Long:%12.8lf, %12.8lf Alt:%7.2lf",
     //       msg.status.status, msg.status.service,
     //       msg.latitude, msg.longitude, msg.altitude);
@@ -61,6 +62,7 @@ void StatusCallback(const jackal_msgs::Status& msg) {
   //TODO
   status_msg_.is_ok = true;
   status_msg_.battery_level = msg.measured_battery;
+  status_pub_.publish(status_msg_);
 }
 
 int main(int argc, char* argv[]) {
