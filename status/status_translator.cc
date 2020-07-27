@@ -61,7 +61,7 @@ void StatusCallback(const jackal_msgs::Status& msg) {
 
   //TODO
   status_msg_.is_ok = true;
-  status_msg_.battery_level = msg.measured_battery;
+  status_msg_.battery_level = msg.measured_battery / 100.0;
   status_pub_.publish(status_msg_);
 }
 
