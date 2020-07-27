@@ -86,3 +86,13 @@ TARGET_INCLUDE_DIRECTORIES(gps_translator PRIVATE
 TARGET_LINK_LIBRARIES(gps_translator gflags roslib roscpp pthread boost_system
     rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
+
+ROSBUILD_ADD_EXECUTABLE(status_translator
+status/status_translator.cc)
+TARGET_INCLUDE_DIRECTORIES(status_translator PRIVATE
+shared_lib
+config_reader/include
+${LUA_INCLUDE_DIR})
+TARGET_LINK_LIBRARIES(status_translator gflags roslib roscpp pthread boost_system
+rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
+${BUILD_SPECIFIC_LIBRARIES})
