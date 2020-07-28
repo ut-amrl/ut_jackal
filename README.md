@@ -9,6 +9,7 @@ A single combined repository of all code needed to run the UT Campus Jackal
 1. gflags
 1. Eigen3
 1. Ceres-Solver
+1. jackal_msgs ros package
 
 ## Build
 1. Add the repo path to the `ROS_PACKAGE_PATH` environment variable
