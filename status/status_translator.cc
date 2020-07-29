@@ -84,13 +84,14 @@ int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, false);
 
   ros::init(argc, argv, "status_translator");
-  ros::Rate loop_rate(10);
   ros::NodeHandle n;
   ros::Subscriber status_sub = n.subscribe(FLAGS_status_topic, 1, &StatusCallback);
   ros::Subscriber loc_sub = n.subscribe(FLAGS_localization_topic, 1, &LocalizationCallback);
   status_pub_ =  n.advertise<amrl_msgs::RobofleetStatus>(FLAGS_output_topic, 1);
 
   time_t curr_time;
+  ros::start();
+  ros::Rate loop_rate(10);
   while (ros::ok()) {
 
     curr_time = time(NULL);
