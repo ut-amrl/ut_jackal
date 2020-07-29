@@ -31,6 +31,7 @@
 #include "ros/ros.h"
 
 #include "amrl_msgs/RobofleetStatus.h"
+#include "amrl_msgs/Localization2DMsg.h"
 #include "jackal_msgs/Status.h"
 #include "math/math_util.h"
 #include "ros/ros_helpers.h"
@@ -40,11 +41,17 @@ using std::string;
 
 using namespace math_util;
 
-DEFINE_string(input_topic, "/status", "ROS topic for jackal status messsages");
+DEFINE_string(status_topic, "/status", "ROS topic for jackal status messsages");
+DEFINE_string(localization_topic, "/localization", "ROS topic for amrl localization messsages");
 DEFINE_string(output_topic, "/robofleet_status", "ROS topic for Robofleet status messages");
 
 ros::Publisher status_pub_;
 amrl_msgs::RobofleetStatus status_msg_;
+time_t last_status_msg = time(NULL);
+time_t last_loc_msg = time(NULL);
+
+const double TIMEOUT = 3.0;
+
 
 void StatusCallback(const jackal_msgs::Status& msg) {
   const bool verbose = FLAGS_v > 0;
@@ -62,7 +69,14 @@ void StatusCallback(const jackal_msgs::Status& msg) {
   //TODO
   status_msg_.is_ok = true;
   status_msg_.battery_level = msg.measured_battery / 100.0;
-  status_pub_.publish(status_msg_);
+  last_status_msg = time(NULL);
+}
+
+void LocalizationCallback(const amrl_msgs::Localization2DMsg& msg) {
+  std::stringstream ss;
+  ss << msg.map << ": " << msg.pose.x << ", " << msg.pose.y;
+  status_msg_.location = ss.str();
+  last_loc_msg = time(NULL);
 }
 
 int main(int argc, char* argv[]) {
@@ -70,10 +84,33 @@ int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, false);
 
   ros::init(argc, argv, "status_translator");
+  ros::Rate loop_rate(10);
   ros::NodeHandle n;
-  ros::Subscriber status_sub = n.subscribe(FLAGS_input_topic, 1, &StatusCallback);
+  ros::Subscriber status_sub = n.subscribe(FLAGS_status_topic, 1, &StatusCallback);
+  ros::Subscriber loc_sub = n.subscribe(FLAGS_localization_topic, 1, &LocalizationCallback);
   status_pub_ =  n.advertise<amrl_msgs::RobofleetStatus>(FLAGS_output_topic, 1);
 
-  ros::spin();
+  time_t curr_time;
+  while (ros::ok()) {
+
+    curr_time = time(NULL);
+    
+    // haven't heard from the robot in too long!
+    if (difftime(curr_time, last_status_msg) > TIMEOUT) {
+      status_msg_.status = "unknown";
+      status_msg_.is_ok = false;
+      status_msg_.battery_level = 0.0;
+    }
+
+    if (difftime(curr_time, last_loc_msg) > TIMEOUT) {
+      status_msg_.location = "";
+    }
+
+    status_pub_.publish(status_msg_);
+
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
   return 0;
 }
