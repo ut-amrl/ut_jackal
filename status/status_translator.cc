@@ -36,6 +36,8 @@
 #include "math/math_util.h"
 #include "ros/ros_helpers.h"
 #include "visualization/visualization.h"
+#include "util/timer.h"
+#include "util/helpers.h"
 
 using std::string;
 
@@ -44,14 +46,12 @@ using namespace math_util;
 DEFINE_string(status_topic, "/status", "ROS topic for jackal status messsages");
 DEFINE_string(localization_topic, "/localization", "ROS topic for amrl localization messsages");
 DEFINE_string(output_topic, "/robofleet_status", "ROS topic for Robofleet status messages");
+DEFINE_double(timeout, 3.0, "Timeout for resetting fields of status message.");
 
 ros::Publisher status_pub_;
 amrl_msgs::RobofleetStatus status_msg_;
-time_t last_status_msg = time(NULL);
-time_t last_loc_msg = time(NULL);
-
-const double TIMEOUT = 3.0;
-
+double last_status_msg = GetMonotonicTime();
+double last_loc_msg = GetMonotonicTime();
 
 void StatusCallback(const jackal_msgs::Status& msg) {
   const bool verbose = FLAGS_v > 0;
@@ -69,14 +69,13 @@ void StatusCallback(const jackal_msgs::Status& msg) {
   //TODO
   status_msg_.is_ok = true;
   status_msg_.battery_level = msg.measured_battery / 100.0;
-  last_status_msg = time(NULL);
+  last_status_msg = GetMonotonicTime();
 }
 
 void LocalizationCallback(const amrl_msgs::Localization2DMsg& msg) {
-  std::stringstream ss;
-  ss << msg.map << ": " << msg.pose.x << ", " << msg.pose.y;
-  status_msg_.location = ss.str();
-  last_loc_msg = time(NULL);
+  const string status = StringPrintf("%s: %.3f,%.3f,%.1f\u00b0", msg.map.c_str(), msg.pose.x, msg.pose.y, RadToDeg(msg.pose.theta));
+  status_msg_.location = status;
+  last_loc_msg = GetMonotonicTime();
 }
 
 int main(int argc, char* argv[]) {
@@ -89,21 +88,20 @@ int main(int argc, char* argv[]) {
   ros::Subscriber loc_sub = n.subscribe(FLAGS_localization_topic, 1, &LocalizationCallback);
   status_pub_ =  n.advertise<amrl_msgs::RobofleetStatus>(FLAGS_output_topic, 1);
 
-  time_t curr_time;
-  ros::start();
+  double curr_time;
   ros::Rate loop_rate(10);
   while (ros::ok()) {
 
-    curr_time = time(NULL);
+    curr_time = GetMonotonicTime();
     
     // haven't heard from the robot in too long!
-    if (difftime(curr_time, last_status_msg) > TIMEOUT) {
+    if (curr_time - last_status_msg > FLAGS_timeout) {
       status_msg_.status = "unknown";
       status_msg_.is_ok = false;
       status_msg_.battery_level = 0.0;
     }
 
-    if (difftime(curr_time, last_loc_msg) > TIMEOUT) {
+    if (curr_time - last_loc_msg > FLAGS_timeout) {
       status_msg_.location = "";
     }
 
