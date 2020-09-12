@@ -118,7 +118,7 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
     } else if (!recording && msg.buttons[3] == 1) {
 
       printf("Starting recording rosbag...\n");
-      if (system("rosbag record /status /velodyne_points /scan /imu/data /jackal_velocity_controller/odom /gps/fix /gps/vel /imu/data_raw /odometry/filtered /odometry/gps /velodyne_2dscan /velodyne_2dscan_high_beams /tf &") != 0) {
+      if (system("rosbag record /status /velodyne_points /scan /imu/data /jackal_velocity_controller/odom /gps/fix /gps/vel /imu/data_raw /odometry/filtered /odometry/gps /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose &") != 0) {
         printf("Unable to record\n");
       } else {
         printf("Started recording rosbag.\n");
