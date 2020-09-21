@@ -13,9 +13,9 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //========================================================================
 /*!
-\file    gps_translator.cc
+\file    status_translator.cc
 \brief   Translate from GPS to map coordinates
-\author  Joydeep Biswas, (C) 2020
+\author  Kavan Sikand, (C) 2020
 */
 //========================================================================
 
