@@ -51,6 +51,69 @@ DEFINE_string(joystick_topic,
 // The button used to indicate start of autonomous operation.
 DEFINE_uint64(start_btn_idx, 0, "Start button index");
 
+DEFINE_string(record_topics, "/autonomy_arbiter/enabled \
+  /bluetooth_teleop/cmd_vel \
+  /bluetooth_teleop/joy \
+  /bluetooth_teleop/joy/set_feedback \
+  /cmd_drive \
+  /cmd_vel \
+  /diagnostics \
+  /diagnostics_agg \
+  /diagnostics_toplevel_state \
+  /e_stop \
+  /feedback \
+  /gps/fix \
+  /gps/nmea_sentence \
+  /gps/nmea_sentence_out \
+  /gps/time_reference \
+  /gps/vel \
+  /imu/data \
+  /imu/data_raw \
+  /imu/mag \
+  /imu/magnetic_field \
+  /imu_filter/parameter_descriptions \
+  /imu_filter/parameter_updates \
+  /jackal_velocity_controller/cmd_vel \
+  /jackal_velocity_controller/odom \
+  /jackal_velocity_controller/parameter_descriptions \
+  /jackal_velocity_controller/parameter_updates \
+  /joint_states \
+  /joy_teleop/cmd_vel \
+  /localization \
+  /navigation/cmd_vel \
+  /navsat/fix \
+  /navsat/nmea_sentence \
+  /navsat/time_reference \
+  /navsat/vel \
+  /odometry/filtered \
+  /odometry/gps \
+  /robofleet_status \
+  /rosout \
+  /rosout_agg \
+  /scan \
+  /set_pose \
+  /status \
+  /subscriptions \
+  /tf \
+  /tf_static \
+  /twist_marker_server/cmd_vel \
+  /twist_marker_server/feedback \
+  /twist_marker_server/update \
+  /twist_marker_server/update_full \
+  /velodyne_2dscan \
+  /velodyne_2dscan_high_beams \
+  /velodyne_nodelet_manager/bond \
+  /velodyne_nodelet_manager_cloud/parameter_descriptions \
+  /velodyne_nodelet_manager_cloud/parameter_updates \
+  /velodyne_nodelet_manager_driver/parameter_descriptions \
+  /velodyne_nodelet_manager_driver/parameter_updates \
+  /velodyne_nodelet_manager_laserscan/parameter_descriptions \
+  /velodyne_nodelet_manager_laserscan/parameter_updates \
+  /velodyne_packets \
+  /velodyne_points \
+  /visualization \
+  /wifi_connected", "Topics to record");
+
 // Drive publisher.
 ros::Publisher drive_pub_;
 
@@ -118,7 +181,7 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
     } else if (!recording && msg.buttons[3] == 1) {
 
       printf("Starting recording rosbag...\n");
-      if (system("rosbag record /status /velodyne_points /scan /imu/data /jackal_velocity_controller/odom /gps/fix /gps/vel /imu/data_raw /odometry/filtered /odometry/gps /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose &") != 0) {
+      if (system(("rosbag record " + FLAGS_record_topics + " &").c_str()) != 0) {
         printf("Unable to record\n");
       } else {
         printf("Started recording rosbag.\n");
