@@ -66,6 +66,7 @@ TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
     navigation/src
     shared_lib
     config_reader/include
+    navigation/src/third_party
     ${LUA_INCLUDE_DIR})
 TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
     rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
