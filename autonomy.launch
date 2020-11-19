@@ -1,4 +1,0 @@
-<launch>
-  <node pkg="ut_jackal" type="enml" name="enml" args='-c="../enml/config" -m="../enml/maps" -d1'  cwd="node" />
-  <node pkg="ut_jackal" type="navigation" name="navigation" args='--maps_dir ../navigation/maps' cwd="node"  />
-</launch>
