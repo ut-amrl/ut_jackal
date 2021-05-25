@@ -1,5 +1,10 @@
 PROJECT(ut_jackal)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1.0)
+
+
+SET(CMAKE_AUTOMOC ON)
+SET(CMAKE_AUTORCC ON)
+SET(CMAKE_AUTOUIC ON)
 
 SET(CMAKE_CXX_FLAGS "-march=native -Wall -Werror -g")
 
@@ -16,10 +21,12 @@ ENDIF()
 
 MESSAGE(STATUS "SOURCE DIR: ${PROJECT_SOURCE_DIR}")
 
-
 FIND_PACKAGE(Lua51 REQUIRED)
 FIND_PACKAGE(Eigen3 REQUIRED)
 FIND_PACKAGE(Ceres REQUIRED)
+FIND_PACKAGE(Qt5 COMPONENTS Core Widgets WebSockets REQUIRED)
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 
 INCLUDE($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 ROSBUILD_INIT()
@@ -94,11 +101,22 @@ TARGET_LINK_LIBRARIES(gps_translator gflags roslib roscpp pthread boost_system
     ${BUILD_SPECIFIC_LIBRARIES})
 
 ROSBUILD_ADD_EXECUTABLE(status_translator
-status/status_translator.cc)
+    status/status_translator.cc)
 TARGET_INCLUDE_DIRECTORIES(status_translator PRIVATE
-shared_lib
-config_reader/include
-${LUA_INCLUDE_DIR})
-TARGET_LINK_LIBRARIES(status_translator gflags roslib roscpp pthread boost_system
-rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
-${BUILD_SPECIFIC_LIBRARIES})
+    shared_lib
+    config_reader/include
+    ${LUA_INCLUDE_DIR})
+TARGET_LINK_LIBRARIES(status_translator 
+    gflags roslib roscpp pthread    
+    boost_system rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
+    ${BUILD_SPECIFIC_LIBRARIES})
+
+ROSBUILD_ADD_EXECUTABLE(websocket
+    webviz/src/websocket/websocket_main.cc
+    webviz/src/websocket/websocket.cc
+)
+TARGET_INCLUDE_DIRECTORIES(websocket PRIVATE
+    shared_lib)
+TARGET_LINK_LIBRARIES(websocket
+    glog gflags roslib roscpp pthread amrl_shared_lib
+    Qt5::Core Qt5::Widgets Qt5::WebSockets)
