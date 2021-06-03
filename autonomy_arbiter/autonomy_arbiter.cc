@@ -103,11 +103,10 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
       }
     }
   }
+  static bool recording = false;
   // See if recording should start.
-  if (msg.buttons.size() >=15 &&
-      msg.buttons[11] == 1) {
-    static bool recording = false;
-    if (recording && msg.buttons[1] == 1) {
+  // Stop with red circle.
+  if (recording && msg.buttons[1] == 1) {
       recording = false;
       if (system("killall rosbag") != 0) {
         printf("Unable to kill rosbag!\n");
@@ -115,17 +114,16 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
         printf("Stopped recording rosbag.\n");
       }
       need_to_debounce = true;
-    } else if (!recording && msg.buttons[3] == 1) {
-
-      printf("Starting recording rosbag...\n");
-      if (system("rosbag record /status /velodyne_points /scan /imu/data /jackal_velocity_controller/odom /gps/fix /gps/vel /imu/data_raw /odometry/filtered /odometry/gps /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose &") != 0) {
-        printf("Unable to record\n");
-      } else {
-        printf("Started recording rosbag.\n");
-        recording = true;
-      }
-      need_to_debounce = true;
+  } else if (!recording && msg.buttons[2] == 1) {
+    // Start with green triangle.
+    printf("Starting recording rosbag...\n");
+    if (system("rosbag record /status /imu/data /bluetooth_teleop/joy /left/image_color/compressed /right/image_color/compressed /velodyne_2dscan_high_beams /jackal_velocity_controller/odom /velodyne_2dscan /odometry/filtered /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose /camera/rgb/image_raw/compressed /camera/depth/image_raw/compressed /velodyne_points /navsat/nmea_sentence /imu/data_raw /visualization&") != 0) {
+      printf("Unable to record\n");
+    } else {
+      printf("Started recording rosbag.\n");
+      recording = true;
     }
+    need_to_debounce = true;
   }
 
   if (need_to_debounce) {
@@ -142,6 +140,7 @@ int main(int argc, char** argv) {
   // Initialize ROS.
   ros::init(argc, argv, "autonomy_arbiter", ros::init_options::NoSigintHandler);
 
+  printf("Starting autonomy arbiter");
   if (FLAGS_v > 0) {
     printf("Autonomy arbiter\n");
     printf("Source topic: %s\n", FLAGS_src_topic.c_str());
