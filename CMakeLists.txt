@@ -52,9 +52,14 @@ TARGET_LINK_LIBRARIES(enml ceres roslib roscpp ncurses pthread boost_system
     ${LUA_LIBRARIES} rt popt glog rosbag amrl_shared_lib
     ${BUILD_SPECIFIC_LIBRARIES})
 
+
 ROSBUILD_ADD_EXECUTABLE(navigation
     navigation/src/navigation/navigation_main.cc
     navigation/src/navigation/navigation.cc
+    navigation/src/navigation/motion_primitives.cc
+    navigation/src/navigation/ackermann_motion_primitives.cc
+    navigation/src/navigation/constant_curvature_arcs.cc
+    navigation/src/navigation/linear_evaluator.cc
     navigation/src/visualization/visualization.cc
     navigation/src/vector_map/vector_map.cc)
 TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
