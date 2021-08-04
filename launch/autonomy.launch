@@ -1,8 +1,12 @@
 <launch>
   <node pkg="ut_jackal" type="autonomy_arbiter" name="autonomy_arbiter" cwd="node" /> 
   <node pkg="ut_jackal" type="status_translator" name="status_translator" cwd="node" />
-  <node pkg="ut_jackal" type="enml" name="enml" args='-c="$(find ut_jackal)/config" -r "enml.lua" -m="$(find ut_jackal)/enml/maps"'  cwd="node" />
-  <node pkg="ut_jackal" type="navigation" name="navigation" args='--maps_dir $(find amrl_maps) --robot_config $(find ut_jackal)/config/navigation.lua' cwd="node"  />
+  <node pkg="ut_jackal" type="enml" name="enml" 
+      args='-c="$(find ut_jackal)/config" -r "enml.lua"' 
+      cwd="node" />
+  <node pkg="graph_navigation" type="navigation" name="navigation" 
+      args='--maps_dir $(find amrl_maps) --robot_config $(find ut_jackal)/config/navigation_demo.lua' 
+      cwd="node"  />
   <node pkg="ut_jackal" type="websocket" name="websocket" cwd="node"  />
 </launch>
 

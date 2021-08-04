@@ -52,6 +52,8 @@ TARGET_INCLUDE_DIRECTORIES(enml PRIVATE
     enml/src
     enml/src/shared
     enml/src/config-reader/include
+    shared_lib
+    config_reader/include
     ${LUA_INCLUDE_DIR}
     ${CERES_INCLUDE_DIRS})
 ADD_DEPENDENCIES(enml rosbuild_precompile)
@@ -59,25 +61,6 @@ TARGET_LINK_LIBRARIES(enml ceres roslib roscpp ncurses pthread boost_system
     ${LUA_LIBRARIES} rt popt glog rosbag amrl_shared_lib
     ${BUILD_SPECIFIC_LIBRARIES})
 
-
-ROSBUILD_ADD_EXECUTABLE(navigation
-    navigation/src/navigation/navigation_main.cc
-    navigation/src/navigation/navigation.cc
-    navigation/src/navigation/motion_primitives.cc
-    navigation/src/navigation/ackermann_motion_primitives.cc
-    navigation/src/navigation/constant_curvature_arcs.cc
-    navigation/src/navigation/linear_evaluator.cc
-    navigation/src/visualization/visualization.cc
-    navigation/src/vector_map/vector_map.cc)
-TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
-    navigation/src
-    shared_lib
-    config_reader/include
-    navigation/src/third_party
-    ${LUA_INCLUDE_DIR})
-TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
-    rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
-    ${BUILD_SPECIFIC_LIBRARIES})
 
 ROSBUILD_ADD_EXECUTABLE(autonomy_arbiter
     autonomy_arbiter/autonomy_arbiter.cc)
