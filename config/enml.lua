@@ -22,7 +22,7 @@ enml = {
   max_point_cloud_range = 100;
   max_normal_point_distance = 0.75;
   robot_sensor_offset = vec3(0.05, 0.0, 0.5);
-  num_skip_readings = 1;
+  num_skip_readings = 3;
 
   -- Odometry parameters.
   min_rotation = deg2rad(5);
@@ -70,7 +70,7 @@ enml = {
 
   -- MLE Optimization parameters.
   pose_increment = 1;
-  max_history = 10;
+  max_history = 4;
   max_solver_iterations = 15;
   num_repeat_iterations = 1;
   max_repeat_iterations = 3;
