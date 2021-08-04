@@ -10,3 +10,6 @@
 [submodule "webviz"]
 	path = webviz
 	url = git@github.com:ut-amrl/webviz
+[submodule "graph_navigation"]
+	path = graph_navigation
+	url = git@github.com:ut-amrl/graph_navigation
