@@ -1,0 +1,1 @@
+roslaunch trajectory_generation generate_primitives.launch quit_on_finish:=false rviz:=false curvature:=0.5 radius:=4 radius_sampling_step:=1 resolution:=0.2 turn_in_place:=true output_name:=resolution_20cm_curvature_50cm.mprim

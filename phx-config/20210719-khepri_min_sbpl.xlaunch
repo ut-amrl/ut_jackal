@@ -1,0 +1,818 @@
+<launch>
+  <rosarg>
+    # Robot name (e.g. warty, chinook)
+    name: khepri
+    # Robot type (e.g. warthog, husky)
+    platform: jackal
+    calibrating: false
+    config: khepri
+    object_pipeline: false
+    terrain_projection: false
+    # Package containing the platform configuration.
+    config_package: hardware_launch
+    # Disables all functions unless explicitly defined as enabled.
+    optin: false
+    hardware:
+      config_yaml: ''
+      # Run in calibration mode; sensor locations become dynamically-reconfigurable.
+      calibrating: false
+      enable_platform: true
+      enable_cameras: true
+      enable_lasers: true
+      enable_imus: true
+      enable_gps: true
+      cameras:
+        realsense:
+          forward:
+            args:
+              serial_no: ''
+              machine: localhost
+              enable_depth: true
+              enable_infra1: false
+              enable_infra2: false
+              enable_fisheye: false
+              enable_gyro: false
+              enable_accel: false
+              unite_imu_method: copy
+      lasers:
+        velodyne:
+          velodyne:
+            args:
+      # The type of velodyne ('VLP-16', 'HDL-32E')
+              type: VLP-16
+              topic: lidar_points
+      imus:
+        microstrain:
+          imu:
+            args:
+              hardware_sync: false
+              use_filtered_orientation: false
+              enable_gps: false
+    control:
+      # Enable teleoperation control modes.
+      teleop: true
+      joy_dev: /dev/input/js0
+    odometry:
+      # Run simple (legacy) odometry.
+      run_simple: true
+      # Run EKF-based odometry.
+      run_ekf: false
+      # Run visual-inertial odometry (requires stereo camera pair time synced to IMU).
+      run_vio: false
+      # Run viwo for omnigraph
+      run_viwo: false
+      camera0: stereo_left
+      camera1: stereo_right
+      image0: image_rect_color
+      image1: image_rect_color
+      use_stereo: true
+      dbg: false
+    classification_pipeline:
+      machine: localhost
+      # The network to use for semantic segmentation (fcn | icnet | salsanext)
+      algorithm: salsanext
+      # Camera to use for semantic segmentation.
+      camera: forward
+      image: color/image_rect_color
+      camera_info: camera_info
+      image_topic: /khepri/forward/color/image_rect_color
+      camera_info_topic: /khepri/forward/camera_info
+      point_cloud_topic: lidar_points
+      gpu_id: 0
+      semantic_topic_group: pixel_classification
+      semantic_image_topic: /khepri/forward/pixel_classification/semantic_image
+    intelligence:
+      use_psg: 0
+      use_nlg: 0
+      use_iwm: 1
+      use_me: 1
+      use_mp: 1
+    slam:
+      # Run in 3D mode (as opposed to planar).
+      mode_3d_odometry: true
+      # Use message stream pipeline (as opposed to omnicache).
+      use_message_stream_pipeline: 1
+      # Save the map on shutdown.
+      save_map: false
+      # Load a saved map on startup.
+      load_map: false
+      save_file: $(find mapping_launch)/config/map
+      load_file: $(find mapping_launch)/config/map
+      use_vio: false
+      # Enable generation of heightmap gridmap when using message stream pipeline.
+      enable_heightmap: false
+      # Use accumulate/transform global mapping rather than reprojection. Options are: off, grid, cloud
+      global_mapping_accumulator_mode: off
+      # Method to use to check for loop closures and relative poses. 'icp|ndt'
+      pose_query_method: icp
+    navigation_behaviors:
+      # Enable native navigation behavior
+      native: true
+      # Enable IOC-based behavior
+      ioc: false
+      # Name of pkg that contains navigation yaml file
+      navigation_config_pkg: navigation_launch
+      # Map topic to use for navigation and planning behaviors
+      map_topic: /khepri/point_cloud_cache/renderers/full_map
+    ioc_traversal:
+      machine: localhost
+      ioc_config: simple_test.p
+      landmine_config_file: intel_empty.yaml
+      feature_topics: '[/khepri/point_cloud_cache/renderers/full_map,       /khepri/visual_cache/grass,       /khepri/visual_cache/road]'
+      allow_intervention: false
+      intervention_output_dir: /var/tmp/ioc_intervention
+    navigation:
+      uw_perception: false
+      map_topic: /khepri/point_cloud_cache/renderers/full_map
+      local_map_topic: /khepri/local_point_cloud_cache/renderers/recent_map
+      local_costmap_config: recent_cache_local_costmap.yaml
+      global_costmap_config: global_costmap.yaml
+      passthrough_config: passthrough_costmap.yaml
+      # Version of global planner to use. ['sbpl', 'gls', 'easl']
+      global_planner: sbpl
+      # Version of local planner to use. ['nlopt', 'mppi', 'rhmpc']
+      local_planner: mppi
+      # Whether or not to use recovery planner
+      use_recovery: 0
+      use_appld: false
+      # Path to platform-specific primitives
+      primitive_filename: None
+      # Name of pkg that contains navigation yaml file
+      navigation_config_pkg: navigation_launch
+      navigation_config: $(find navigation_launch)/config/jackal_navigation.yaml
+      footprint_config: $(find navigation_launch)/config/jackal_footprint.yaml
+  </rosarg>
+  <include argns="*" file="$(find phoenix_launch)/launch/robot.xlaunch" />
+  <rosparam>
+    khepri:
+      jackal_node:
+        require:
+          publishers:
+          - status
+          - feedback
+          - imu/data_raw
+          - navsat/nmea_sentence
+          subscribers:
+          - cmd_drive
+          - wifi_connected
+        wireless_interface: wlp2s0
+      navsat: {}
+      imu_filter:
+        use_mag: false
+        mag_bias_x: 0
+        mag_bias_y: 0
+        mag_bias_z: 0
+        gain: 0.1
+        zeta: 0.001
+        publish_tf: false
+        use_magnetic_field_msg: false
+      diagnostic_aggregator:
+        analyzers:
+          jackal:
+            type: diagnostic_aggregator/AnalyzerGroup
+            path: Jackal Base
+            analyzers:
+              general:
+                type: diagnostic_aggregator/GenericAnalyzer
+                path: General
+                remove_prefix: 'jackal_node'
+                timeout: 5.0
+                expected: ['jackal_node: General', 'jackal_node: Battery', 'jackal_node:
+                    User voltage supplies', 'jackal_node: Current consumption', 'jackal_node:
+                    Power consumption']
+              sensors:
+                type: diagnostic_aggregator/GenericAnalyzer
+                path: Sensor Topics
+                remove_prefix: 'jackal_node'
+                timeout: 5.0
+                expected: ['jackal_node: /imu/data_raw topic status', 'jackal_node: /navsat/nmea_sentence
+                    topic status']
+              teleop:
+                type: diagnostic_aggregator/GenericAnalyzer
+                path: Bluetooth Joystick
+                remove_prefix: 'bluetooth_teleop/joy_node'
+                timeout: 5.0
+                expected: ['bluetooth_teleop/joy_node: Joystick Driver Status']
+      forward:
+        realsense2_camera:
+          serial_no: ''
+          json_file_path: ''
+          rosbag_filename: ''
+          enable_pointcloud: false
+          pointcloud_texture_stream: RS2_STREAM_COLOR
+          pointcloud_texture_index: 0
+          enable_sync: true
+          align_depth: true
+          fisheye_width: 640
+          fisheye_height: 480
+          enable_fisheye: false
+          depth_width: 640
+          depth_height: 480
+          enable_depth: true
+          color_width: 640
+          color_height: 480
+          enable_color: true
+          infra_width: 640
+          infra_height: 480
+          enable_infra1: false
+          enable_infra2: false
+          fisheye_fps: 30
+          depth_fps: 30
+          infra_fps: 30
+          color_fps: 30
+          gyro_fps: 400
+          accel_fps: 250
+          enable_gyro: false
+          enable_accel: false
+          enable_t265: false
+          base_frame_id: khepri/forward_link
+          depth_frame_id: khepri/forward_depth_frame
+          infra1_frame_id: khepri/forward_infra1_frame
+          infra2_frame_id: khepri/forward_infra2_frame
+          color_frame_id: khepri/forward_color_frame
+          fisheye_frame_id: khepri/forward_fisheye_frame
+          fisheye1_frame_id: khepri/forward_fisheye1_frame
+          fisheye2_frame_id: khepri/forward_fisheye2_frame
+          accel_frame_id: khepri/forward_accel_frame
+          gyro_frame_id: khepri/forward_gyro_frame
+          pose_frame_id: khepri/forward_pose_frame
+          depth_optical_frame_id: khepri/forward_depth_optical_frame
+          infra1_optical_frame_id: khepri/forward_infra1_optical_frame
+          infra2_optical_frame_id: khepri/forward_infra2_optical_frame
+          color_optical_frame_id: khepri/forward_color_optical_frame
+          fisheye_optical_frame_id: khepri/forward_fisheye_optical_frame
+          fisheye1_optical_frame_id: khepri/forward_fisheye1_optical_frame
+          fisheye2_optical_frame_id: khepri/forward_fisheye2_optical_frame
+          accel_optical_frame_id: khepri/forward_accel_optical_frame
+          gyro_optical_frame_id: khepri/forward_gyro_optical_frame
+          pose_optical_frame_id: khepri/forward_pose_optical_frame
+          aligned_depth_to_color_frame_id: khepri/forward_aligned_depth_to_color_frame
+          aligned_depth_to_infra1_frame_id: khepri/forward_aligned_depth_to_infra1_frame
+          aligned_depth_to_infra2_frame_id: khepri/forward_aligned_depth_to_infra2_frame
+          aligned_depth_to_fisheye_frame_id: khepri/forward_aligned_depth_to_fisheye_frame
+          aligned_depth_to_fisheye1_frame_id: khepri/forward_aligned_depth_to_fisheye1_frame
+          aligned_depth_to_fisheye2_frame_id: khepri/forward_aligned_depth_to_fisheye2_frame
+          spatial_frame_id: khepri/forward_spatial
+          filters: ''
+          clip_distance: -1
+          linear_accel_cov: 0.01
+          initial_reset: false
+          unite_imu_method: copy
+      velodyne_nodelet_manager_driver:
+        device_ip: ''
+        frame_id: khepri/velodyne_link
+        model: VLP16
+        pcap: ''
+        port: 2368
+        read_fast: false
+        read_once: false
+        repeat_delay: 0.0
+        rpm: 600.0
+        gps_time: false
+        cut_angle: -0.01
+      velodyne_assemble_nodelet:
+        calibration: $(find velodyne_pointcloud)/params/VLP16db.yaml
+        min_range: 0.2
+        max_range: 30.0
+        cloud_ratio: 0.0
+        fast_cloud_ratio: 0.0
+        time_offset: -0.01
+        assembler:
+          fixed_frame: khepri/odom
+          output_frame: khepri/base
+          x_bound: 50.0
+          y_bound: 50.0
+          z_bound: 50.0
+          x_self_min: 0.1
+          xn_self_min: 0.1
+          y_self_min: 0.1
+          z_self_min: 0.25
+          resolution: 0.025
+          downsample: 3
+          trigger_time: 2.0
+          remove_ground_plane: false
+          ground_filter_distance: 0.05
+          platform: khepri
+        fast_assembler:
+          topic: fast_assembled_cloud
+          fixed_frame: khepri/odom
+          output_frame: khepri/base
+          x_bound: 20.0
+          y_bound: 20.0
+          z_bound: 20.0
+          x_self_min: 0.1
+          xn_self_min: 0.1
+          y_self_min: 0.1
+          z_self_min: 0.25
+          resolution: 0.025
+          downsample: 3
+          trigger_time: 0.5
+          remove_ground_plane: false
+          platform: khepri
+      velodyne_nodelet_manager_cloud:
+        calibration: $(find velodyne_pointcloud)/params/VLP16db.yaml
+        max_range: 30.0
+        min_range: 0.2
+        input_topic: velodyne_packets
+        output_topic: lidar_points
+      imu:
+        sensor_name: imu
+        port: /dev/imu
+        rate: 120
+        base_frame: khepri/base
+        imu_frame: khepri/imu_link_ned
+        autocalibrate: true
+        gyro_init_time: 5.0
+        time_offset: -0.04
+        use_raw_imu_time: false
+        enable_gps: false
+      imu_data_transformer_ned_enu:
+        target_frame: khepri/imu_link
+      imu_data_transformer_enu_base:
+        target_frame: khepri/base_link
+      jackal_joint_publisher:
+        type: "joint_state_controller/JointStateController"
+        publish_rate: 50
+      jackal_velocity_controller:
+        type: "diff_drive_controller/DiffDriveController"
+        left_wheel: ['front_left_wheel', 'rear_left_wheel']
+        right_wheel: ['front_right_wheel', 'rear_right_wheel']
+        publish_rate: 50
+        pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 0.03]
+        twist_covariance_diagonal: [0.001, 0.001, 0.001, 1000000.0, 1000000.0, 0.03]
+        cmd_vel_timeout: 0.25
+        k_l: 0.1
+        k_r: 0.1
+        enable_odom_tf: false
+        wheel_separation_multiplier: 1.5
+        wheel_radius_multiplier: 1.0
+        linear:
+          x:
+            has_velocity_limits: true
+            max_velocity: 2.0
+            has_acceleration_limits: true
+            max_acceleration: 3.0
+        angular:
+          z:
+            has_velocity_limits: true
+            max_velocity: 2.0
+            has_acceleration_limits: true
+            max_acceleration: 4.0
+        base_frame_id: khepri/base
+        odom_frame_id: khepri/odom
+      twist_mux:
+        topics:
+        - name: joy
+          topic: joy_teleop/cmd_vel
+          timeout: 0.5
+          priority: 10
+        - name: interactive_marker
+          topic: twist_marker_server/cmd_vel
+          timeout: 0.5
+          priority: 8
+        - name: external
+          topic: cmd_vel
+          timeout: 0.5
+          priority: 1
+        locks:
+        - name: e_stop
+          topic: e_stop
+          timeout: 0.0
+          priority: 255
+      joy_teleop:
+        teleop_twist_joy:
+          axis_linear: 1
+          scale_linear: 0.4
+          scale_linear_turbo: 2.0
+          axis_angular: 0
+          scale_angular: 0.7
+          scale_angular_turbo: 1.4
+          enable_button: 4
+          enable_turbo_button: 5
+        joy_node:
+          deadzone: 0.1
+          autorepeat_rate: 20
+          dev: /dev/input/js0
+        twist_marker_server:
+          link_name: khepri/base
+          robot_name: khepri
+          marker_size_scale: 0.6
+      robot_state_publisher:
+        tf_prefix: khepri
+      odometry:
+        odom_frame: khepri/odom
+        base_frame: khepri/base
+        basic_frame: khepri/basic
+        enc_odom_topic: jackal_velocity_controller/odom
+        rate: 400.0
+        odom_time_offset: -0.04
+        odom_publish_offset: 0.015
+        disable_scan_matching: true
+        zero_hold: true
+        use_imu_orientation: true
+        sixdof_pose: true
+        use_accelerometer: true
+        cutoff_frequency: 0.1
+        add_noise: false
+        noise_size: 0.01
+      multimodal_seg:
+        image_topic: /khepri/forward/color/image_rect_color
+        camera_info_topic: /khepri/forward/color/camera_info
+        cloud_topic: /khepri/lidar_points
+        lidar_frame: khepri/velodyne_link
+        semantic_image_topic: pixel_classification/semantic_image
+        semantic_cloud_topic: pixel_classification/semantic_cloud
+      world_model:
+        base_frame: khepri/base
+        map_frame: khepri/map
+      nlu:
+        fixed_frame: khepri/map
+        base_frame: khepri/base
+      point_cloud_pipeline:
+        center_lidar_transformer:
+          cloudtopic: /khepri/lidar_points
+          outtopic: center_lidar/cloud
+          target_frame: khepri/base
+        center_lidar_tf_streamer:
+          in: center_lidar/cloud
+          out: center_lidar/odom_from_base
+          target_frame: khepri/odom
+        center_lidar_classifier:
+          cloud_input_topic: center_lidar/cloud
+          classification_output_topic: center_lidar/cloud/labeled
+          binning_resolution: 0.5
+          lethal_height_threshold: 0.05
+          min_points_in_bin: 1
+        center_lidar_local_cloud_to_grid:
+          cloudtopic: center_lidar/cloud/labeled
+          posetopic: center_lidar/odom_from_base
+          outtopic: center_lidar/grid/local
+          debugtopic: center_lidar/local_grid_debug
+          ground_classes: [ground]
+          obstacle_classes: [obstacle]
+          resolution: 0.1
+          clearing_min_range: 0.1
+          clearing_theta_bounds: 3.14159
+          max_range: 20
+          max_z: 100
+          time_threshold: 1.0
+        center_lidar_keyframes:
+          in: center_lidar/odom_from_base
+          out: center_lidar/odom_from_base/keyframes
+          max_rate: 1
+          distance_threshold: 0.05
+          rotation_threshold: 0.087
+          stop_filter: true
+          startup_time: 30.0
+        center_lidar_point_cloud_keyframes:
+          key: center_lidar/odom_from_base/keyframes
+          in: center_lidar/cloud/labeled
+          out: center_lidar/cloud/labeled/keyframes
+        center_lidar_pose_graph_streamer:
+          intopic: /khepri/pose_graph
+          outtopic: center_lidar/map_from_odom
+          source: center_lidar/cloud/low_res
+        center_lidar_tf_compose:
+          in1: center_lidar/map_from_odom
+          in2: center_lidar/odom_from_base/keyframes
+          out: center_lidar/map_from_base_all
+        center_lidar_tf_filter:
+          intopic: center_lidar/map_from_base_all
+          outtopic: center_lidar/map_from_base
+          distance_threshold: 0.01
+          rotation_threshold: 0.01
+        center_lidar_omnigraph_notifier:
+          cloudtopic: center_lidar/cloud/low_res
+          posetopic: center_lidar/odom_from_base/keyframes
+          frame_notifications_topic: /khepri/frame_notifications
+        center_lidar_frame_acceptance_notifier:
+          accepted_frame_topic: /khepri/accepted_frame_notifications
+          cloud_topic: center_lidar/cloud
+          pose_topic: center_lidar/odom_from_base/keyframes
+          centroid_topic: center_lidar/centroids
+          out_topic: /frame_data
+        center_lidar_centroids:
+          intopic: /khepri/accepted_frame_notifications
+          cloudtopic: center_lidar/cloud/low_res
+          outtopic: /khepri/point_cloud_cache/renderers/centroids
+          outstream: center_lidar/centroids
+        center_lidar_keyframe_subsampler:
+          intopic: center_lidar/cloud/labeled/keyframes
+          outtopic: center_lidar/cloud/low_res
+          labeled: true
+          resolution: 0.2
+        center_lidar_keyframe_cloud_to_grid:
+          cloudtopic: center_lidar/cloud/labeled/keyframes
+          posetopic: center_lidar/map_from_base
+          outtopic: center_lidar/grid/keyframes
+          debugtopic: center_lidar/grid_debug
+          resolution: 0.2
+          ground_classes: [ground, easy, medium]
+          obstacle_classes: [obstacle, hard]
+        relative_pose_icp_service:
+          intopics: ['center_lidar/cloud/low_res']
+          query_name: /khepri/query_relative_pose
+          translation_threshold: 0.25
+          rotation_threshold: 0.3
+          fitness_score_max: 1.0
+          planar_mode: false
+        loop_close_icp_service:
+          intopics: ['center_lidar/cloud/low_res']
+          query_name: /khepri/query_loop_close_relative_pose
+          fitness_score_max: 2.0
+          planar_mode: false
+          translation_threshold: 1.0
+          rotation_threshold: 0.25
+        local_grid_composer:
+          intopics: ['center_lidar/grid/local']
+          outtopic: /khepri/local_point_cloud_cache/renderers/recent_map
+          clearing_min_range: 0.1
+          time_threshold: 1.0
+          mode: local
+        keyframe_cloud_composer:
+          cloud_input_topics: ['center_lidar/cloud/low_res']
+          transform_topics: ['center_lidar/map_from_base']
+          cloud_output_topic: /khepri/full_cloud
+          resolution: 0.2
+        keyframe_grid_composer:
+          intopics: ['center_lidar/grid/keyframes']
+          mode: global
+          outtopic: /khepri/point_cloud_cache/renderers/full_map
+      gps_manager:
+        gps_frame: khepri/gps
+        static_frame: khepri/odom
+        base_frame: khepri/base
+        platform: khepri
+        utm_origin_x: 330620.0
+        utm_origin_y: 4322395.0
+        utm_origin_z: 0.0
+        rtkgps_format: false
+        planar_estimate: true
+        convergence_threshold: 0.1
+        recompute_estimate_threshold: 0.5
+        convergence_score_threshold: 0.25
+        external_pose_in_map_frame: false
+        use_delta_pose_test: true
+        use_delta_yaw_test: false
+      gps_visualizer:
+        efficient_visualizer: true
+        show_satellites: true
+      omnigraph:
+        platform: khepri
+        movement_translation_thresh: 0.1
+        movement_rotation_thresh: 0.1
+        disable_icp: false
+        disable_roll_pitch: false
+        odom_covariance_scaling_factor: 1
+        gps_enabled: true
+        gps_frame_id: gps
+        gps_movement_translation_thresh: 1.0
+        planar_gps_factors: true
+        factor_type: ReferenceFrame
+        soft_gps_sigma: 50
+        gps_use_robust_factors: true
+        gps_robust_factor_type: Fair
+        reference_frame_max_measurements: 5
+        disable_local_loop_close: false
+        loop_close_query_queue_max_size: 10
+        loop_close_thread_rate: 5
+        loop_close_blanking_interval: 12
+        loop_close_max_distance: 5.0
+        loop_close_use_robust_factors: true
+        loop_close_robust_factor_type: Fair
+        discrete_object:
+          movement_translation_thresh: 0.25
+          movement_rotation_thresh: 0.25
+          sx: 0.25
+          sy: 0.25
+          sz: 0.25
+        force_resolve_time: 3.0
+        save_map: false
+        load_map: false
+        use_vio: false
+        vio_update_topic: /khepri/vio_factor
+        vio_covariance_scaling_factor: 2000
+        use_aloam: false
+        ground_truth_available: false
+        ground_truth_frame: world
+        ground_truth_base_frame: ground_truth/khepri/base
+        visualization:
+          odometry:
+            width: 0.2
+          icp:
+            width: 0.2
+          loop_close:
+            width: 0.2
+          gps:
+            width: 0.2
+          discrete_objects:
+            width: 0.01
+          vio:
+            width: 0.2
+          ground_truth:
+            width: 0.1
+        frame_id: khepri/map
+      goto_object_behavior:
+        execution_method: native
+        lookup_objects_server: /lookup_objects
+        change_goal_object_threshold: 1.0
+        change_goal_plan_threshold: 2.0
+        object_goal_radius: 1.0
+        robot_frame: khepri/base
+        map_frame: khepri/map
+        costmap:
+          footprint: [[-0.25, -0.22], [0.25, -0.22], [0.25, 0.22], [-0.25, 0.22]]
+          map_type: costmap
+          robot_base_frame: khepri/base
+          track_unknown_space: true
+          cost_scaling_factor: 1.0
+          always_send_full_costmap: true
+          plugins:
+          - {name: external_map, type: "occ_grid_costmap_plugin::OccupancyGridLayer"}
+    
+          external_map:
+            external_costmap: true
+            map_topic: /khepri/global_costmap/costmap/costmap
+          global_frame: khepri/map
+          recompute_topic: /khepri/global_costmap/costmap/costmap
+        planner:
+          total_allocated_time: 1.0
+          multiquery_mode: false
+      approach_object_behavior:
+        lookup_objects_server: /lookup_objects
+        robot_frame: khepri/base
+        rate: 10
+      intel_overlay:
+        heading_delta: 0.001
+      ioc_costmap_generator:
+        ioc_model_file: $(find ioc_traversal)/models/simple_test.p
+        feature_topics: [/khepri/point_cloud_cache/renderers/full_map, /khepri/visual_cache/grass,
+          /khepri/visual_cache/road]
+      navigation_manager:
+        global_replan_time: -1.0
+        compute_plan_retry_limit: 3
+        fail_on_local_stuck_threshold: 20.0
+        replan_on_local_failure: true
+        replan_on_local_stuck_threshold: 5.0
+        transform_shift_replan_threshold: 2.0
+        use_verify_server: false
+        use_local_planner: true
+        use_recovery: false
+        global_frame: khepri/map
+        base_frame: khepri/base
+      global_planner:
+        maximum_plan_envelope: 1.0
+        primitive_filename: $(find navigation_launch)/primitives/resolution_20cm_curvature_50cm.mprim.mprim
+        footprint: [[-0.25, -0.22], [0.25, -0.22], [0.25, 0.22], [-0.25, 0.22]]
+        costmap:
+          footprint: [[-0.25, -0.22], [0.25, -0.22], [0.25, 0.22], [-0.25, 0.22]]
+          map_type: costmap
+          robot_base_frame: khepri/base
+          track_unknown_space: true
+          cost_scaling_factor: 1.0
+          always_send_full_costmap: true
+          plugins:
+          - {name: external_map, type: "occ_grid_costmap_plugin::OccupancyGridLayer"}
+    
+          external_map:
+            external_costmap: true
+            map_topic: /khepri/global_costmap/costmap/costmap
+          global_frame: khepri/map
+          recompute_topic: /khepri/global_costmap/costmap/costmap
+      local_planner:
+        action_frequency: 15.0
+        time_horizon: 6.0
+        max_vel_x: 2.0
+        max_vel_th: 1.0
+        use_carrot_goal: true
+        max_accel_x: 3.0
+        default_vel_x: 0.75
+        default_vel_w: 2.0
+        use_car_model: false
+        fix_initial_steering: false
+        allow_direction_switch_optimization: true
+        characteristic_length: 0.3
+        try_all_initial_conditions: false
+        maintain_curvature: true
+        wheel_base: 0.38
+        optimize_v: true
+        time_delay: 0.16 #0.24
+        weight_trajectory: 1.0
+        weight_curvature: 1.0
+        weight_progress: 0.5
+        weight_envelope: 0.0
+        weight_liveliness: 1.0
+        max_vel_x_step: 0.2
+        max_vel_th_step: 10.0
+        max_switching_time_step: 0.2
+        use_costmap: true
+        costmap_multiplier: 0.15
+        goal_xy_tolerance: 0.25
+        goal_theta_tolerance: 1.57
+        visualize_tested_trajectories: true 
+        wheel_radius: 0.0905
+        front_back_distance: 0.48
+        rollouts: 300
+        control_std: 4.0
+        temperature: 0.001
+        full_covariance: false
+        desired_traj_weight: 20
+        step_size: 0.99
+        smoothing: 0.01
+        #collision_cost: 0.02
+      local_controller:
+        use_car_model: false
+        control_frequency: 15.0
+        max_vel_th: 1.0
+      local_planner_and_controller:
+        costmap:
+          footprint: [[-0.25, -0.22], [0.25, -0.22], [0.25, 0.22], [-0.25, 0.22]]
+          map_type: costmap
+          robot_base_frame: khepri/base
+          track_unknown_space: true
+          cost_scaling_factor: 1.0
+          always_send_full_costmap: true
+          plugins:
+          - {name: external_map, type: "occ_grid_costmap_plugin::OccupancyGridLayer"}
+    
+          external_map:
+            external_costmap: true
+            map_topic: /khepri/local_costmap/costmap/costmap
+          global_frame: khepri/odom
+          recompute_topic: /khepri/local_costmap/costmap/costmap
+      local_costmap:
+        costmap:
+          footprint: [[-0.25, -0.22], [0.25, -0.22], [0.25, 0.22], [-0.25, 0.22]]
+          global_frame: khepri/odom
+          robot_base_frame: khepri/base
+          track_unknown_space: true
+          always_send_full_costmap: true
+          transform_tolerance: 0.25
+          plugins:
+          - {name: recent_map, type: "occ_grid_costmap_plugin::OccupancyGridLayer"}
+          - {name: inflation, type: "costmap_2d::InflationLayer"}
+          - {name: footprint_clear, type: "footprint_costmap_plugin::FootprintLayer"}
+    
+          recent_map:
+            use_full_probability: true
+            clear_probability_threshold: 40
+            closed_probability_threshold: 80
+            use_maximum: true
+            map_topic: /khepri/local_point_cloud_cache/renderers/recent_map
+          inflation:
+            cost_scaling_factor: 1.0
+            inflation_radius: 0.75
+            inflate_unknown: true
+          recompute_topic: /khepri/local_point_cloud_cache/renderers/recent_map
+      global_costmap:
+        costmap:
+          footprint: [[-0.25, -0.22], [0.25, -0.22], [0.25, 0.22], [-0.25, 0.22]]
+          global_frame: khepri/map
+          robot_base_frame: khepri/base
+          track_unknown_space: true
+          always_send_full_costmap: true
+          transform_tolerance: 0.5
+          plugins:
+          - {name: full_map, type: "occ_grid_costmap_plugin::OccupancyGridLayer"}
+          - {name: external_constraint, type: "external_constraint_plugin::ExternalConstraintLayer"}
+          - {name: ioc, type: "occ_grid_costmap_plugin::OccupancyGridLayer"}
+          - {name: inflation, type: "costmap_2d::InflationLayer"}
+          - {name: footprint_clear, type: "footprint_costmap_plugin::FootprintLayer"}
+      # - {name: unknown, type: "unexplored_costmap_plugin::UnexploredLayer"}
+    
+          full_map:
+            use_full_probability: true
+            clear_probability_threshold: 40
+            closed_probability_threshold: 60
+            use_maximum: true
+            map_topic: /khepri/point_cloud_cache/renderers/full_map
+          ioc:
+            direct_costmap: true
+            map_topic: "ioc_costmap"
+            use_maximum: true
+            allow_resize: false
+          inflation:
+            cost_scaling_factor: 0.5
+            inflation_radius: 1.0
+            inflate_unknown: true
+          unknown:
+            enabled: false
+          robot_obstacles:
+            ignore_base_frame: base
+          recompute_topic: /khepri/point_cloud_cache/renderers/full_map
+      odom_frame: khepri/odom
+      base_frame: khepri/base
+      discrete_objects_cache:
+        static_frame: khepri/odom
+        base_frame: khepri/base
+    ? ''
+    : khepri:
+        navigation_config:
+          global_planner: sbpl
+          local_planner: mppi
+          use_recovery: 0
+    iwm:
+      people_in_scene_threshold: 1000
+  </rosparam>
+  <param command="/home/adamu/phoenix-r1/docker-build/install/lib/xacro/xacro $(find hardware_launch)/urdf/robot.urdf.xacro calibrating:=False config:=$(find hardware_launch)/config/khepri.yaml calibration_file:=$(find hardware_launch)/calibration/khepri.yaml config_yaml:=&quot;{name: khepri}&quot;" name="khepri/robot_description" />
+</launch>

@@ -1,0 +1,36 @@
+imu_joint:
+  frame_id: sensor_plate_link
+  child_frame_id: imu_link
+  x: 0
+  y: 0
+  z: 0.3
+  roll: 0.001012
+  pitch: 0.005597
+  yaw: 1.552624
+velodyne_joint:
+  frame_id: sensor_plate_link
+  child_frame_id: velodyne_link
+  x: 0.12
+  y: 0
+  z: 0.315
+  roll: 0
+  pitch: -0
+  yaw: 0
+sensor_plate_joint:
+  frame_id: base_link
+  child_frame_id: sensor_plate_link
+  x: 0
+  y: 0
+  z: 0
+  roll: 0
+  pitch: -0
+  yaw: 0
+center_realsense_joint:
+  frame_id: sensor_plate_link
+  child_frame_id: center_realsense_link
+  x: 0.222
+  y: 0
+  z: 0.285
+  roll: 0
+  pitch: -0
+  yaw: 0

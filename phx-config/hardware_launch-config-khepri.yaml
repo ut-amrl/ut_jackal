@@ -1,0 +1,22 @@
+name: &name khepri 
+platform: jackal
+machines:
+  vision:
+    name: vision
+    address: localhost
+imus:
+  microstrain:
+    imu:
+      enabled: true
+cameras:
+  realsense:
+    forward:
+      enabled: true
+lasers:
+  velodyne:
+    velodyne:
+      enabled: true
+      args:
+        type: "VLP-16"
+        sensor_ip_address: 192.168.1.201
+        platform_ip_address: 192.168.90.185
