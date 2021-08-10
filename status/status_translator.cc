@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -40,6 +41,8 @@
 #include "util/helpers.h"
 
 using std::string;
+using std::min;
+using std::max;
 
 using namespace math_util;
 
@@ -68,7 +71,16 @@ void StatusCallback(const jackal_msgs::Status& msg) {
 
   //TODO
   status_msg_.is_ok = true;
+  const float kFullBatteryVoltage = 28.8;
+  const float kDepletedBatteryVoltage = 22.0;
+  if (msg.measured_battery <= 1.10 * kDepletedBatteryVoltage) {
+    status_msg_.status = "Low Battery";
+  }
   status_msg_.battery_level = msg.measured_battery / 100.0;
+  status_msg_.battery_level = min<float>(1.0,max<float>(0.0,
+      (msg.measured_battery - kDepletedBatteryVoltage) /
+      (kFullBatteryVoltage - kDepletedBatteryVoltage)
+      ));
   last_status_msg = GetMonotonicTime();
 }
 
