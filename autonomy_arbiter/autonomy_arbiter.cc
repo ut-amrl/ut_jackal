@@ -34,22 +34,24 @@
 
 #include "shared_lib/util/helpers.h"
 #include "shared_lib/util/timer.h"
+#include "config_reader/config_reader.h"
 
 // Verbose level flag.
 DECLARE_int32(v);
-DEFINE_string(config, "autonomy_arbiter.lua", "config file location");
+DEFINE_string(config, "config/autonomy_arbiter.lua", "config file location");
 
 // The source topic to read autonomous commands from.
-CONFIG_string(src_topic, "AutonomyArbiterParameters.src_topic");
+CONFIG_STRING(src_topic, "AutonomyArbiterParameters.src_topic");
 // The destination topic to write autonomous commands to.
-CONFIG_string(dest_topic, "AutonomyArbiterParameters.dest_topic");
+CONFIG_STRING(dest_topic, "AutonomyArbiterParameters.dest_topic");
 // The destination topic to publish autonomy status to.
-CONFIG_string(status_topic, "AutonomyArbiterParameters.status_topic");
+CONFIG_STRING(status_topic, "AutonomyArbiterParameters.status_topic");
 // The topic of the Joystick controller.
-CONFIG_string(joystick_topic, "AutonomyArbiterParameters.joystick_topic");
+CONFIG_STRING(joystick_topic, "AutonomyArbiterParameters.joystick_topic");
 // The button used to indicate start of autonomous operation.
-CONFIG_uint64(start_btn_idx, "AutonomyArbiterParameters.start_btn_idx");
-CONFIG_stringlist(recording_topics, "AutonomyArbiterParameters.recording_topics");
+CONFIG_UINT(start_btn_idx, "AutonomyArbiterParameters.start_btn_idx");
+CONFIG_STRINGLIST(recording_topics, "AutonomyArbiterParameters.recording_topics");
+CONFIG_STRING(record_directory, "AutonomyArbiterParameters.record_directory");
 
 // Drive publisher.
 ros::Publisher drive_pub_;
@@ -66,17 +68,19 @@ struct AutonomyArbiterParameters {
 
   // The destination topic to write autonomous commands to.
   std::string dest_topic;
+  
+  // The destination topic to publish autonomy status to.
+  std::string status_topic;
 
   // The topic of the Joystick controller.
   std::string joystick_topic;
-  
-  // The destination topic to publish autonomy status to.
-  std::string status_topic:
 
   // The button used to indicate start of autonomous operation.
   uint64_t start_btn_idx;
 
-  std::vector<std::string>> recording_topics;
+  std::vector<std::string> recording_topics;
+
+  std::string record_directory;
 
   // Default constructor, just set defaults.
   AutonomyArbiterParameters() :
@@ -85,7 +89,8 @@ struct AutonomyArbiterParameters {
       status_topic("autonomy_arbiter/enabled"),
       joystick_topic("bluetooth_teleop/joy"),
       start_btn_idx(0),
-      recording_topics({}) {}
+      recording_topics({}),
+      record_directory("/data/") {}
 };
 
 void LoadConfig(AutonomyArbiterParameters* params) {
@@ -167,7 +172,14 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
   } else if (!recording && msg.buttons[2] == 1) {
     // Start with green triangle.
     printf("Starting recording rosbag...\n");
-    if (system("rosbag record /status /imu/data /bluetooth_teleop/joy /left/image_color/compressed /right/image_color/compressed /velodyne_2dscan_high_beams /jackal_velocity_controller/odom /velodyne_2dscan /odometry/filtered /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose /camera/rgb/image_raw/compressed /camera/depth/image_raw/compressed /velodyne_points /navsat/nmea_sentence /imu/data_raw /visualization&") != 0) {
+    std::string record_cmd = "rosbag record ";
+    record_cmd += "-o " + CONFIG_record_directory + " ";
+    for (std::string cmd : CONFIG_recording_topics) {
+      record_cmd += cmd + " ";
+    }
+    record_cmd += "&";
+
+    if (system(record_cmd.c_str()) != 0) {
       printf("Unable to record\n");
     } else {
       printf("Started recording rosbag.\n");
