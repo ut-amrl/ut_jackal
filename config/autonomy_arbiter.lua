@@ -5,27 +5,43 @@ AutonomyArbiterParameters = {
   joystick_topic = "bluetooth_teleop/joy",
   start_btn_idx = 0,
   recording_topics = {
+    -- jackal data
     "/status",
-    "/imu/data",
-    "/bluetooth_teleop/joy",
-    "/left/image_color/compressed",
-    "/right/image_color/compressed",
-    "/velodyne_2dscan_high_beams",
+    "/imu/data_raw",
     "/jackal_velocity_controller/odom",
+    "/bluetooth_teleop/joy",
+    -- "/navsat/nmea_sentence",
+    -- "/imu/data",
+    -- "/odometry/filtered",
+    -- "/tf",
+
+    -- velodyne
+    "/velodyne_2dscan_high_beams",
     "/velodyne_2dscan",
-    "/odometry/filtered",
-    "/tf",
+    -- "/velodyne_points",
+    "/velodyne_packets",
+
+    "/visualization",
+
+    -- localization
     "/localization",
+    "/set_pose",
+
+    -- navigation
+    "/carrot",
     "/move_base_simple/goal",
     "/navigation/cmd_vel",
     "/set_nav_target",
-    "/set_pose",
+    "/autonomy_arbiter/enabled",
+
+    -- Cameras
+    -- "/left/image_color/compressed",
+    -- "/right/image_color/compressed",
     "/camera/rgb/image_raw/compressed",
-    "/camera/depth/image_raw/compressed",
-    "/velodyne_points",
-    "/navsat/nmea_sentence",
-    "/imu/data_raw",
-    "/visualization"
+    -- "/camera/depth/image_raw/compressed",
+
+    -- Metadata
+    "/error_report"
   },
   record_directory = "/data/"
 }
