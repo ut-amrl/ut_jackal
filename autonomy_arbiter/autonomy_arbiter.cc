@@ -34,22 +34,24 @@
 
 #include "shared_lib/util/helpers.h"
 #include "shared_lib/util/timer.h"
+#include "config_reader/config_reader.h"
 
 // Verbose level flag.
 DECLARE_int32(v);
+DEFINE_string(config, "config/autonomy_arbiter.lua", "config file location");
 
 // The source topic to read autonomous commands from.
-DEFINE_string(src_topic, "navigation/cmd_vel", "Source ROS topic");
+CONFIG_STRING(src_topic, "AutonomyArbiterParameters.src_topic");
 // The destination topic to write autonomous commands to.
-DEFINE_string(dest_topic, "cmd_vel", "Destination ROS topic");
+CONFIG_STRING(dest_topic, "AutonomyArbiterParameters.dest_topic");
 // The destination topic to publish autonomy status to.
-DEFINE_string(status_topic, "autonomy_arbiter/enabled", "Status ROS topic");
+CONFIG_STRING(status_topic, "AutonomyArbiterParameters.status_topic");
 // The topic of the Joystick controller.
-DEFINE_string(joystick_topic,
-              "bluetooth_teleop/joy",
-              "Joystick ROS topic");
+CONFIG_STRING(joystick_topic, "AutonomyArbiterParameters.joystick_topic");
 // The button used to indicate start of autonomous operation.
-DEFINE_uint64(start_btn_idx, 0, "Start button index");
+CONFIG_UINT(start_btn_idx, "AutonomyArbiterParameters.start_btn_idx");
+CONFIG_STRINGLIST(recording_topics, "AutonomyArbiterParameters.recording_topics");
+CONFIG_STRING(record_directory, "AutonomyArbiterParameters.record_directory");
 
 // Drive publisher.
 ros::Publisher drive_pub_;
@@ -59,6 +61,59 @@ ros::Publisher status_pub_;
 
 // Enable drive.
 bool enable_drive_ = false;
+
+struct AutonomyArbiterParameters {
+  // The source topic to read autonomous commands from.
+  std::string src_topic;
+
+  // The destination topic to write autonomous commands to.
+  std::string dest_topic;
+  
+  // The destination topic to publish autonomy status to.
+  std::string status_topic;
+
+  // The topic of the Joystick controller.
+  std::string joystick_topic;
+
+  // The button used to indicate start of autonomous operation.
+  uint64_t start_btn_idx;
+
+  std::vector<std::string> recording_topics;
+
+  std::string record_directory;
+
+  // Default constructor, just set defaults.
+  AutonomyArbiterParameters() :
+      src_topic("navigation/cmd_vel"),
+      dest_topic("cmd_vel"),
+      status_topic("autonomy_arbiter/enabled"),
+      joystick_topic("bluetooth_teleop/joy"),
+      start_btn_idx(0),
+      recording_topics({}),
+      record_directory("/data/") {}
+};
+
+void LoadConfig(AutonomyArbiterParameters* params) {
+  #define REAL_PARAM(x) CONFIG_DOUBLE(x, "AutonomyArbiterParameters."#x);
+  #define NATURALNUM_PARAM(x) CONFIG_UINT(x, "AutonomyArbiterParameters."#x);
+  #define STRING_PARAM(x) CONFIG_STRING(x, "AutonomyArbiterParameters."#x);
+  #define STRINGLIST_PARAM(x) CONFIG_STRINGLIST(x, "AutonomyArbiterParameters."#x);
+  #define BOOL_PARAM(x) CONFIG_BOOL(x, "AutonomyArbiterParameters."#x);
+  STRING_PARAM(src_topic);
+  STRING_PARAM(dest_topic);
+  STRING_PARAM(joystick_topic);
+  STRING_PARAM(status_topic);
+  NATURALNUM_PARAM(start_btn_idx);
+  STRINGLIST_PARAM(recording_topics);
+
+  config_reader::ConfigReader reader({FLAGS_config});
+  params->src_topic = CONFIG_src_topic;
+  params->dest_topic = CONFIG_dest_topic;
+  params->joystick_topic = CONFIG_joystick_topic;
+  params->status_topic = CONFIG_status_topic;
+  params->start_btn_idx = CONFIG_start_btn_idx;
+  params->recording_topics = CONFIG_recording_topics;
+}
 
 void DriveCallback(const geometry_msgs::Twist& msg) {
   if (enable_drive_) {
@@ -89,7 +144,7 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
     bool start_pressed = false;
     bool all_else_unpressed = true;
     for (size_t i = 0; i < msg.buttons.size(); ++i) {
-      if (i == FLAGS_start_btn_idx) {
+      if (i == CONFIG_start_btn_idx) {
         start_pressed = msg.buttons[i] == 1;
       } else {
         all_else_unpressed = all_else_unpressed && msg.buttons[i] == 0;
@@ -117,7 +172,14 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
   } else if (!recording && msg.buttons[2] == 1) {
     // Start with green triangle.
     printf("Starting recording rosbag...\n");
-    if (system("rosbag record /status /imu/data /bluetooth_teleop/joy /left/image_color/compressed /right/image_color/compressed /velodyne_2dscan_high_beams /jackal_velocity_controller/odom /velodyne_2dscan /odometry/filtered /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose /camera/rgb/image_raw/compressed /camera/depth/image_raw/compressed /velodyne_points /navsat/nmea_sentence /imu/data_raw /visualization&") != 0) {
+    std::string record_cmd = "rosbag record ";
+    record_cmd += "-o " + CONFIG_record_directory + " ";
+    for (std::string cmd : CONFIG_recording_topics) {
+      record_cmd += cmd + " ";
+    }
+    record_cmd += "&";
+
+    if (system(record_cmd.c_str()) != 0) {
       printf("Unable to record\n");
     } else {
       printf("Started recording rosbag.\n");
@@ -140,20 +202,23 @@ int main(int argc, char** argv) {
   // Initialize ROS.
   ros::init(argc, argv, "autonomy_arbiter", ros::init_options::NoSigintHandler);
 
+  AutonomyArbiterParameters params;
+  LoadConfig(&params);
+
   printf("Starting autonomy arbiter");
   if (FLAGS_v > 0) {
     printf("Autonomy arbiter\n");
-    printf("Source topic: %s\n", FLAGS_src_topic.c_str());
-    printf("Destination topic: %s\n", FLAGS_dest_topic.c_str());
-    printf("Joystick topic: %s\n", FLAGS_joystick_topic.c_str());
+    printf("Source topic: %s\n", CONFIG_src_topic.c_str());
+    printf("Destination topic: %s\n", CONFIG_dest_topic.c_str());
+    printf("Joystick topic: %s\n", CONFIG_joystick_topic.c_str());
   }
   ros::NodeHandle n;
   ros::Subscriber joystick_sub =
-      n.subscribe(FLAGS_joystick_topic, 1, &JoystickCallback);
+      n.subscribe(CONFIG_joystick_topic, 1, &JoystickCallback);
   ros::Subscriber drive_sub =
-      n.subscribe(FLAGS_src_topic, 1, &DriveCallback);
-  drive_pub_ = n.advertise<geometry_msgs::Twist>(FLAGS_dest_topic, 1);
-  status_pub_ = n.advertise<std_msgs::Bool>(FLAGS_status_topic, 1);
+      n.subscribe(CONFIG_src_topic, 1, &DriveCallback);
+  drive_pub_ = n.advertise<geometry_msgs::Twist>(CONFIG_dest_topic, 1);
+  status_pub_ = n.advertise<std_msgs::Bool>(CONFIG_status_topic, 1);
   ros::spin();
   return 0;
 }
