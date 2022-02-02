@@ -10,16 +10,16 @@ AutonomyArbiterParameters = {
     "/imu/data_raw",
     "/jackal_velocity_controller/odom",
     "/bluetooth_teleop/joy",
-    -- "/navsat/nmea_sentence",
-    -- "/imu/data",
-    -- "/odometry/filtered",
+    "/navsat/nmea_sentence",
+    "/imu/data",
+    "/odometry/filtered",
     -- "/tf",
 
     -- velodyne
     "/velodyne_2dscan_high_beams",
     "/velodyne_2dscan",
-    -- "/velodyne_points",
-    "/velodyne_packets",
+    "/velodyne_points",
+    -- "/velodyne_packets",
 
     "/visualization",
 
@@ -35,10 +35,10 @@ AutonomyArbiterParameters = {
     "/autonomy_arbiter/enabled",
 
     -- Cameras
-    -- "/left/image_color/compressed",
-    -- "/right/image_color/compressed",
+    "/left/image_color/compressed",
+    "/right/image_color/compressed",
     "/camera/rgb/image_raw/compressed",
-    -- "/camera/depth/image_raw/compressed",
+    "/camera/depth/image_raw/compressed",
 
     -- Metadata
     "/error_report"
