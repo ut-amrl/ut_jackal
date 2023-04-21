@@ -30,11 +30,14 @@
 #include "glog/logging.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
+#include "sensor_msgs/JoyFeedbackArray.h"
 #include "std_msgs/Bool.h"
 
 #include "shared_lib/util/helpers.h"
 #include "shared_lib/util/timer.h"
 #include "config_reader/config_reader.h"
+
+static const int kSquareButtonJoystickMsgNum = 3;
 
 // Verbose level flag.
 DECLARE_int32(v);
@@ -52,12 +55,18 @@ CONFIG_STRING(joystick_topic, "AutonomyArbiterParameters.joystick_topic");
 CONFIG_UINT(start_btn_idx, "AutonomyArbiterParameters.start_btn_idx");
 CONFIG_STRINGLIST(recording_topics, "AutonomyArbiterParameters.recording_topics");
 CONFIG_STRING(record_directory, "AutonomyArbiterParameters.record_directory");
+// Topic that can be used to stamp a particular point in time when a joystick button is pressed. Current use case: waypoint visitation timestamp
+CONFIG_STRING(joystick_stamp_topic, "AutonomyArbiterParameters.joystick_stamp_topic");
+CONFIG_STRING(joystick_feedback_topic, "AutonomyArbiterParameters.joystick_feedback_topic");
 
 // Drive publisher.
 ros::Publisher drive_pub_;
 
 // Status publisher.
 ros::Publisher status_pub_;
+
+ros::Publisher joystick_stamp_pub_;
+ros::Publisher joystick_feedback_pub_;
 
 // Enable drive.
 bool enable_drive_ = false;
@@ -82,6 +91,14 @@ struct AutonomyArbiterParameters {
 
   std::string record_directory;
 
+  // Topic that a message is published to when the square button is pressed; used to tag timestamps in the recorded data
+  std::string joystick_stamp_topic;
+
+  // Topic on which the joystick can receive feedback
+  // TODO There's a device configuration setting that needs to be set in the joystick node for this to work, so it's
+  //  not currently operational
+  std::string joystick_feedback_topic;
+
   // Default constructor, just set defaults.
   AutonomyArbiterParameters() :
       src_topic("navigation/cmd_vel"),
@@ -90,7 +107,9 @@ struct AutonomyArbiterParameters {
       joystick_topic("bluetooth_teleop/joy"),
       start_btn_idx(0),
       recording_topics({}),
-      record_directory("/data/") {}
+      record_directory("/data/"),
+      joystick_stamp_topic("autonomy_arbiter_joy_stamp"),
+      joystick_feedback_topic("joy_teleop/joy/set_feedback"){}
 };
 
 void LoadConfig(AutonomyArbiterParameters* params) {
@@ -113,6 +132,8 @@ void LoadConfig(AutonomyArbiterParameters* params) {
   params->status_topic = CONFIG_status_topic;
   params->start_btn_idx = CONFIG_start_btn_idx;
   params->recording_topics = CONFIG_recording_topics;
+  params->joystick_stamp_topic = CONFIG_joystick_stamp_topic;
+  params->joystick_feedback_topic = CONFIG_joystick_feedback_topic;
 }
 
 void DriveCallback(const geometry_msgs::Twist& msg) {
@@ -121,6 +142,15 @@ void DriveCallback(const geometry_msgs::Twist& msg) {
   } else {
     // TODO: Ramp down to 0.
   }
+}
+
+void rumbleJoystick() {
+    sensor_msgs::JoyFeedback joy_feedback;
+    joy_feedback.type = sensor_msgs::JoyFeedback::TYPE_RUMBLE;
+    joy_feedback.intensity = 1.0;
+    sensor_msgs::JoyFeedbackArray joy_feedback_arr;
+    joy_feedback_arr.array.emplace_back(joy_feedback);
+    joystick_feedback_pub_.publish(joy_feedback_arr);
 }
 
 void JoystickCallback(const sensor_msgs::Joy& msg) {
@@ -166,6 +196,7 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
       if (system("killall rosbag") != 0) {
         printf("Unable to kill rosbag!\n");
       } else {
+        rumbleJoystick();
         printf("Stopped recording rosbag.\n");
       }
       need_to_debounce = true;
@@ -183,8 +214,15 @@ void JoystickCallback(const sensor_msgs::Joy& msg) {
       printf("Unable to record\n");
     } else {
       printf("Started recording rosbag.\n");
+      rumbleJoystick();
       recording = true;
     }
+    need_to_debounce = true;
+  } else if (msg.buttons[kSquareButtonJoystickMsgNum] == 1) {
+    std_msgs::Header stamp_msg;
+    stamp_msg.stamp = ros::Time::now();
+    joystick_stamp_pub_.publish(stamp_msg);
+    rumbleJoystick();
     need_to_debounce = true;
   }
 
@@ -211,6 +249,7 @@ int main(int argc, char** argv) {
     printf("Source topic: %s\n", CONFIG_src_topic.c_str());
     printf("Destination topic: %s\n", CONFIG_dest_topic.c_str());
     printf("Joystick topic: %s\n", CONFIG_joystick_topic.c_str());
+    printf("Joystick stamp topic: %s\n", CONFIG_joystick_stamp_topic.c_str());
   }
   ros::NodeHandle n;
   ros::Subscriber joystick_sub =
@@ -219,6 +258,8 @@ int main(int argc, char** argv) {
       n.subscribe(CONFIG_src_topic, 1, &DriveCallback);
   drive_pub_ = n.advertise<geometry_msgs::Twist>(CONFIG_dest_topic, 1);
   status_pub_ = n.advertise<std_msgs::Bool>(CONFIG_status_topic, 1);
+  joystick_stamp_pub_ = n.advertise<std_msgs::Header>(CONFIG_joystick_stamp_topic, 1);
+  joystick_feedback_pub_ = n.advertise<sensor_msgs::JoyFeedbackArray>(CONFIG_joystick_feedback_topic, 1);
   ros::spin();
   return 0;
 }

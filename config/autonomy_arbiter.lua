@@ -4,6 +4,8 @@ AutonomyArbiterParameters = {
   status_topic = "autonomy_arbiter/enabled",
   joystick_topic = "bluetooth_teleop/joy",
   start_btn_idx = 0,
+  joystick_stamp_topic = "/autonomy_arbiter/joystick_stamp",
+  joystick_feedback_topic ="/joy_teleop/joy/set_feedback",
   recording_topics = {
     -- jackal data
     "/status",
@@ -20,6 +22,15 @@ AutonomyArbiterParameters = {
     "/velodyne_2dscan",
     "/velodyne_points",
     -- "/velodyne_packets",
+
+    -- zed -- need to verify these
+    "/zed2i/zed_node/left/camera_info",
+    "/zed2i/zed_node/right/camera_info",
+    -- "/zed2i/zed_node/depth/camera_info",
+    "/zed2i/zed_node/left/image_rect_color/compressed",
+    "/zed2i/zed_node/right/image_rect_color/compressed",
+    -- "/zed2i/zed_node/depth/depth_registered/compressedDepth",
+    -- "/zed2i/zed_node/odom",
 
     "/visualization",
 
@@ -41,7 +52,8 @@ AutonomyArbiterParameters = {
     "/camera/depth/image_raw/compressed",
 
     -- Metadata
-    "/error_report"
+    "/error_report",
+    "/autonomy_arbiter/joystick_stamp"
   },
   record_directory = "/data/"
 }
