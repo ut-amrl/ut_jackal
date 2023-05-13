@@ -30,10 +30,10 @@ AutonomyArbiterParameters = {
     -- zed -- need to verify these
     "/zed2i/zed_node/left/camera_info",
     "/zed2i/zed_node/right/camera_info",
-    -- "/zed2i/zed_node/depth/camera_info",
+    "/zed2i/zed_node/depth/camera_info",
     "/zed2i/zed_node/left/image_rect_color/compressed",
     "/zed2i/zed_node/right/image_rect_color/compressed",
-    -- "/zed2i/zed_node/depth/depth_registered/compressedDepth",
+    "/zed2i/zed_node/depth/depth_registered",
     -- "/zed2i/zed_node/odom",
 
     "/visualization",

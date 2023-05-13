@@ -1,0 +1,23 @@
+<launch>
+
+  <include file="$(find ouster_ros)/launch/sensor.launch" >
+      <arg name="sensor_hostname" value="169.254.164.25"/>
+      <arg name="viz" value="false"/>
+      <arg name="lidar_mode" value="1024x10"/>
+      <arg name="timestamp_mode" value="TIME_FROM_ROS_TIME"/> 
+  </include>
+
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+     <rosparam command="load" file="$(find ut_jackal)/launch/config/pointcloud_to_laserscan_ouster.yaml" />
+      <remap from="cloud_in" to="/ouster/points"/>
+      <remap from="scan" to="velodyne_2dscan"/>
+  </node>
+
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_highbeam">
+     <rosparam command="load" file="$(find ut_jackal)/launch/config/pointcloud_to_highbeam.yaml" />
+      <remap from="cloud_in" to="/ouster/points"/>
+      <remap from="scan" to="velodyne_2dscan_high_beams"/>
+  </node>
+
+
+</launch>
