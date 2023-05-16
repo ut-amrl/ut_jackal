@@ -3,7 +3,7 @@ RobotConfig = {
   scan_topic = "/velodyne_2dscan_high_beams";
   pointcloud_topic = "";
   odometry_topic = "/jackal_velocity_controller/odom";
-  initialpose_topic = "/initialpose";
+  initialpose_topic = "/set_pose";
 };
 
 enml = {

@@ -13,8 +13,8 @@
 [submodule "amrl_shared_lib"]
 	path = amrl_shared_lib
 	url = git@github.com:ut-amrl/amrl_shared_lib.git
-[submodule "amrl_maps"]
-	path = amrl_maps
+[submodule "maps"]
+	path = maps
 	url = git@github.com:ut-amrl/amrl_maps.git
 [submodule "robofleet_client"]
 	path = robofleet_client

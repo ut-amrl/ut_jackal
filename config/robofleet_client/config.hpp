@@ -108,7 +108,7 @@ static void configure_msg_types(RosClientNode& cn) {
                    .priority(20));
 
   cn.configure(SendLocalTopic<nav_msgs::Odometry>()
-                   .from("/odometry/raw")
+                   .from("/jackal_velocity_controller/odom")
                    .to(webviz_constants::odometry_topic)
                    .rate_limit_hz(15)
                    .priority(20));
@@ -155,7 +155,7 @@ static void configure_msg_types(RosClientNode& cn) {
 
   cn.configure(ReceiveRemoteTopic<amrl_msgs::Localization2DMsg>()
                    .from("initialpose")
-                   .to("/initialpose"));
+                   .to("/set_pose"));
 
   // Add additional topics to subscribe and publish here.
 }

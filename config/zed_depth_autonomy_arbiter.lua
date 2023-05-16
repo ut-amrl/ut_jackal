@@ -22,9 +22,9 @@ AutonomyArbiterParameters = {
     -- "/velodyne_2dscan",
     -- "/velodyne_points",
     -- "/velodyne_packets",
-    
+
     -- ouster
-    -- "/ouster/points",
+    "/ouster/points",
     "/ouster/lidar_packets",
 
     -- zed -- need to verify these
@@ -50,10 +50,10 @@ AutonomyArbiterParameters = {
     "/autonomy_arbiter/enabled",
 
     -- Cameras
-    "/left/image_color/compressed",
-    "/right/image_color/compressed",
-    "/camera/rgb/image_raw/compressed",
-    "/camera/depth/image_raw/compressed",
+    -- "/left/image_color/compressed",
+    -- "/right/image_color/compressed",
+    -- "/camera/rgb/image_raw/compressed",
+    -- "/camera/depth/image_raw/compressed",
 
     -- Metadata
     "/error_report",

@@ -5,9 +5,9 @@ end
 NavigationParameters = {
   laser_topic = "/velodyne_2dscan";
   odom_topic = "/jackal_velocity_controller/odom";
-  localization_topic = "localization";
-  init_topic = "initialpose";
-  enable_topic = "autonomy_arbiter/enabled";
+  localization_topic = "/localization";
+  init_topic = "/initialpose";
+  enable_topic = "/autonomy_arbiter/enabled";
   laser_loc = {
     x = 0.065;
     y = 0;
