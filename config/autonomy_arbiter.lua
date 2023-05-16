@@ -24,7 +24,7 @@ AutonomyArbiterParameters = {
     -- "/velodyne_packets",
 
     -- ouster
-    "/ouster/points",
+    -- "/ouster/points",
     "/ouster/lidar_packets",
 
     -- zed -- need to verify these
