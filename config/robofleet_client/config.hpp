@@ -115,13 +115,13 @@ static void configure_msg_types(RosClientNode& cn) {
 
   cn.configure(SendLocalTopic<sensor_msgs::LaserScan>()
                    .from("/velodyne_2dscan")
-                   .to(webviz_constants::lidar_2d_topic)
+                   .to(webviz_constants::obstacle_scan_topic)
                    .rate_limit_hz(15)
                    .priority(2));
 
   cn.configure(SendLocalTopic<sensor_msgs::LaserScan>()
                    .from("/velodyne_2dscan_high_beams")
-                   .to(webviz_constants::obstacle_scan_topic)
+                   .to(webviz_constants::lidar_2d_topic)
                    .rate_limit_hz(15)
                    .priority(2));
 

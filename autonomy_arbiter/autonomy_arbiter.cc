@@ -33,8 +33,8 @@
 #include "sensor_msgs/JoyFeedbackArray.h"
 #include "std_msgs/Bool.h"
 
-#include "shared_lib/util/helpers.h"
-#include "shared_lib/util/timer.h"
+#include "amrl_shared_lib/util/helpers.h"
+#include "amrl_shared_lib/util/timer.h"
 #include "config_reader/config_reader.h"
 
 static const int kSquareButtonJoystickMsgNum = 3;
