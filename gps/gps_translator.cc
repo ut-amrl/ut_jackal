@@ -48,7 +48,7 @@ using namespace math_util;
 
 DEFINE_string(map, "UT_Campus", "Map name to load");
 DEFINE_string(gps_topic, "gps/fix", "ROS topic for GPS messages");
-DEFINE_string(maps_dir, "enml/maps", "Maps directory");
+DEFINE_string(maps_dir, "maps", "Maps directory");
 
 string GetMapFileFromName(const string& map) {
   return FLAGS_maps_dir + "/" + map + "/" + map + ".gpsmap.txt";

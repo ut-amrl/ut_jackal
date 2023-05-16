@@ -12,11 +12,12 @@ A single combined repository of all code needed to run the UT Campus Jackal
 1. jackal_msgs ros package
 
 ## Build
-1. Add the repo path to the `ROS_PACKAGE_PATH` environment variable
+1. Clone the repository and add it to the `ROS_PACKAGE_PATH` environment variable. Also, add `ut_jackal/graph_navigation` path to the `ROS_PACKAGE_PATH` environment variable.
+1. Run `git submodule update --init --recursive` from within `ut_jackal` folder.
 1. Run `make [-j]`
 
 ## Usage
-after a successful `make`, and setting up configs for the appropriate subrepos (enml + graph_navigation) simply do:
-`roslaunch ut_jackal autonomy.launch`
-
-Parameters can be changed in the launch file, or in the configs of the individual robots.
+After a successful `make`, the configuration for different repos (enml, graph_navigation, etc) can be changed in the `config/` folder. Once done, simply run:
+```
+roslaunch ut_jackal autonomy.launch
+```

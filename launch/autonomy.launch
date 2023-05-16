@@ -1,21 +1,53 @@
 <launch>
-  <!-- <include file="$(find ut_jackal)/graph_navigation/launch/velodyne.launch"/> -->
-  <node pkg="ut_jackal" type="autonomy_arbiter" name="autonomy_arbiter"
-      cwd="node" args="--config $(find ut_jackal)/config/autonomy_arbiter.lua" />
-  <node pkg="ut_jackal" type="status_translator" name="status_translator"
-      cwd="node" /> 
-  <node pkg="ut_jackal" type="enml" name="enml" 
-      args='-c="$(find ut_jackal)/config" -r "enml.lua"' 
-      cwd="node" />
-  <node pkg="graph_navigation" type="navigation" name="navigation" 
-      args='-robot_config $(find graph_navigation)/config/navigation.lua velodyne_2dscan:=scan' 
-      cwd="node"  />
-  <node pkg="ut_jackal" type="websocket" name="websocket" cwd="node" >
-    <remap from="scan" to="velodyne_2dscan_high_beams"/>
-  </node>
-
+  <!-- <include file="$(find ut_jackal)/launch/velodyne.launch"/> -->
   <include file="$(find ut_jackal)/launch/ouster.launch" />
   <include file="$(find zed_wrapper)/launch/zed2i.launch" />
+
+  <node name="autonomy_arbiter"
+      pkg="ut_jackal"
+      type="autonomy_arbiter"
+      cwd="node"
+      args="--config $(find ut_jackal)/config/autonomy_arbiter.lua"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="websocket"
+      pkg="ut_jackal"
+      type="websocket"
+      respawn="true"
+      respawn_delay="2" >
+      <remap from="scan" to="velodyne_2dscan_high_beams"/>
+  </node>
+
+  <node name="enml"
+      pkg="ut_jackal"
+      type="enml"
+      args="-d0 -c $(find ut_jackal)/config -r enml.lua -m $(find ut_jackal)/maps"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="navigation"
+      pkg="graph_navigation"
+      type="navigation"
+      args="-robot_config $(find ut_jackal)/config/navigation.lua"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="robofleet_client"
+      pkg="ut_jackal"
+      type="robofleet_client"
+      args=""
+      ns="jackal"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="status_translator"
+      pkg="ut_jackal"
+      type="status_translator"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2" />
+  
 </launch>
 
 

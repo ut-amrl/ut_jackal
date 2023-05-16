@@ -19,5 +19,4 @@
       <remap from="scan" to="velodyne_2dscan_high_beams"/>
   </node>
 
-
 </launch>

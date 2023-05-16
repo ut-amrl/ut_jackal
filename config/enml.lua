@@ -3,7 +3,7 @@ RobotConfig = {
   scan_topic = "/velodyne_2dscan_high_beams";
   pointcloud_topic = "";
   odometry_topic = "/jackal_velocity_controller/odom";
-  initialpose_topic = "/initialpose";
+  initialpose_topic = "/set_pose";
 };
 
 enml = {
@@ -22,7 +22,7 @@ enml = {
   max_point_cloud_range = 100;
   max_normal_point_distance = 0.75;
   robot_sensor_offset = vec3(0.05, 0.0, 0.5);
-  num_skip_readings = 3;
+  num_skip_readings = 1;
 
   -- Odometry parameters.
   min_rotation = deg2rad(5);
