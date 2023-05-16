@@ -1,9 +1,6 @@
 [submodule "enml"]
 	path = enml
 	url = git@github.com:ut-amrl/enml
-[submodule "shared_lib"]
-	path = shared_lib
-	url = git@github.com:ut-amrl/amrl_shared_lib
 [submodule "config_reader"]
 	path = config_reader
 	url = git@github.com:ut-amrl/config-reader
@@ -13,3 +10,12 @@
 [submodule "graph_navigation"]
 	path = graph_navigation
 	url = git@github.com:ut-amrl/graph_navigation
+[submodule "amrl_shared_lib"]
+	path = amrl_shared_lib
+	url = git@github.com:ut-amrl/amrl_shared_lib.git
+[submodule "amrl_maps"]
+	path = amrl_maps
+	url = git@github.com:ut-amrl/amrl_maps.git
+[submodule "robofleet_client"]
+	path = robofleet_client
+	url = git@github.com:ut-amrl/robofleet_client.git
