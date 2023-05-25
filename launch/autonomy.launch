@@ -22,7 +22,7 @@
   <node name="enml"
       pkg="ut_jackal"
       type="enml"
-      args="-d0 -c $(find ut_jackal)/config -r enml.lua -m $(find ut_jackal)/maps"
+      args="-d1 -c $(find ut_jackal)/config -r enml.lua -m $(find ut_jackal)/maps"
       respawn="true"
       respawn_delay="2" />
 
