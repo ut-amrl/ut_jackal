@@ -16,7 +16,7 @@
       type="websocket"
       respawn="true"
       respawn_delay="2" >
-      <remap from="scan" to="velodyne_2dscan_high_beams"/>
+      <remap from="scan" to="velodyne_2dscan"/>
   </node>
 
   <node name="enml"
@@ -29,7 +29,8 @@
   <node name="navigation"
       pkg="graph_navigation"
       type="navigation"
-      args="-robot_config $(find ut_jackal)/config/navigation.lua"
+      args="-robot_config $(find ut_jackal)/config/navigation.lua --dw 10.0 --cw 0.2 --fw 0.1 move_base_simple/goal:=move_base_simple/localgoal"
+      cwd="node"
       respawn="true"
       respawn_delay="2" />
 

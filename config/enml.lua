@@ -1,27 +1,28 @@
 RobotConfig = {
   name = "ut-jackal";
-  scan_topic = "/velodyne_2dscan_high_beams";
+  scan_topic = "/velodyne_2dscan";
   pointcloud_topic = "";
   odometry_topic = "/jackal_velocity_controller/odom";
   initialpose_topic = "/set_pose";
 };
 
 enml = {
-  
+  -- On the cobblestone next to the GDC door closest to the lab,
+  -- ********************************************************
   -- DEFAULT STARTING LOCATION
-  -- On the black square in AHG2 Gym
-  -- map_name = "AHG2";
-  map_name = "UT_Campus";
-  starting_loc_x = 5.5;
-  starting_loc_y = 75.06;
-  starting_angle = deg2rad(-90);
+  -- On the cobblestone next to the GDC door closest to the lab,
+  -- right next to grass, on the side with the lamp post and facing Speedway.
+  map_name = "EmptyMap";
+  starting_loc_x = 0;
+  starting_loc_y = 0;
+  starting_angle = deg2rad(0);
 
   -- VLP16 Sensor parameters.
   laser_std_dev = 0.01;
   min_point_cloud_range = 0.02;
   max_point_cloud_range = 100;
   max_normal_point_distance = 0.75;
-  robot_sensor_offset = vec3(0.05, 0.0, 0.5);
+  robot_sensor_offset = vec3(0.0762, 0.0, 0.5);
   num_skip_readings = 1;
 
   -- Odometry parameters.
@@ -70,7 +71,7 @@ enml = {
 
   -- MLE Optimization parameters.
   pose_increment = 1;
-  max_history = 4;
+  max_history = 10;
   max_solver_iterations = 15;
   num_repeat_iterations = 1;
   max_repeat_iterations = 3;
