@@ -63,7 +63,7 @@ void LaserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg,
   }
 
   // Merge the scans
-  merged_scan_msg_.header.stamp = ros::Time::now();
+  merged_scan_msg_.header.stamp = scan_buffers_.begin()->second.second;
   merged_scan_msg_.header.frame_id = target_frame_;
 
   for (float& r : merged_scan_msg_.ranges) {
