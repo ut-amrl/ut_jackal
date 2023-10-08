@@ -7,28 +7,22 @@
 #include <string.h>
 #include <vector>
 #include <map>
-#include <mutex>
 
 #include "config_reader/config_reader.h"
 #include "sensor_msgs/LaserScan.h"
 #include "glog/logging.h"
 #include "gflags/gflags.h"
 #include "ros/ros.h"
-#include "math/math_util.h"
 
 using std::string;
 using std::vector;
-using math_util::Sq;
 
 DECLARE_int32(v);
 
 vector<string> scan_topics_ = {"ouster_laserscan"};
 std::map<string, std::pair<sensor_msgs::LaserScan::ConstPtr,
                            ros::Time>> scan_buffers_;
-std::mutex buffer_mutex_;
 float time_threshold_ = 0.1;
-float min_sq_range_ = 0;
-float max_sq_range_ = FLT_MAX;
 
 sensor_msgs::LaserScan merged_scan_msg_;
 string merged_scan_topic_ = "merged_laserscan";
@@ -52,8 +46,6 @@ void LaserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg,
                        const string& topic) {
   // Store the scan in the buffer
   ros::Time received_time = ros::Time::now();
-
-  std::lock_guard<std::mutex> lock(buffer_mutex_);
   scan_buffers_[topic] = std::make_pair(msg, received_time);
 
   // Check if all scans are received
@@ -72,25 +64,20 @@ void LaserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg,
 
   for (const auto& scan_buffer : scan_buffers_) {
     for (size_t i = 0; i < scan_buffer.second.first->ranges.size(); ++i) {
-      const float sq_range = Sq(scan_buffer.second.first->ranges[i]);
-      if (sq_range < min_sq_range_ || sq_range > max_sq_range_) continue;
+      const float range = scan_buffer.second.first->ranges[i];
+      if (range < merged_scan_msg_.range_min ||
+          range > merged_scan_msg_.range_max) {
+        continue;
+      }
       const float angle = scan_buffer.second.first->angle_min +
                           i * scan_buffer.second.first->angle_increment;
       const size_t idx = static_cast<size_t>(round(
           (angle - merged_scan_msg_.angle_min) / 
           merged_scan_msg_.angle_increment));
       if (idx >= merged_scan_msg_.ranges.size()) continue;
-      if (merged_scan_msg_.ranges[idx] > sq_range) {
-        merged_scan_msg_.ranges[idx] = sq_range;
+      if (merged_scan_msg_.ranges[idx] > range) {
+        merged_scan_msg_.ranges[idx] = range;
       }
-    }
-  }
-
-  for (float& r : merged_scan_msg_.ranges) {
-    if (r < FLT_MAX) {
-      r = sqrt(r);
-    } else {
-      r = 0;
     }
   } // End of merging
 
@@ -120,8 +107,6 @@ void LoadConfig() {
   merged_scan_msg_.range_min = CONFIG_range_min;
   merged_scan_msg_.range_max = CONFIG_range_max;
   merged_scan_msg_.ranges.resize(CONFIG_num_ranges);
-  min_sq_range_ = Sq(CONFIG_range_min);
-  max_sq_range_ = Sq(CONFIG_range_max);
   
   scan_topics_ = CONFIG_scan_topics;
   merged_scan_topic_ = CONFIG_merged_scan_topic;
