@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+import roslib
+roslib.load_manifest('amrl_msgs')
 import numpy as np
 import rospy
 import time
