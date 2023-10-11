@@ -35,7 +35,11 @@ To resume the screen, run `screen -r <screen name>`
 ## Basic Demos
 ### Waypoint Loop
 
-To run through a loop of waypoints, ensure the autonomy stack (previous section) is running. Then run the waypoint loop script as follows:
+To run through a loop of waypoints, ensure the autonomy stack (previous section) is running. 
+
+If not using in an empty map, you must first localize the robot. If not already localized, set the current pose via [robofleet](robofleet.csres.utexas.edu) or using the `/set_pose` topic. 
+
+Then run the waypoint loop script as follows:
 ```
 cd ~/amrl/ut_jackal/scripts/
 python3 waypoint_loop.py --stop_time <number of seconds to stop at each waypoint> --map <name of the waypoints list to run through>
