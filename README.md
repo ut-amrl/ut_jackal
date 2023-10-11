@@ -39,12 +39,16 @@ To run through a loop of waypoints, ensure the autonomy stack (previous section)
 
 If not using in an empty map, you must first localize the robot. If not already localized, set the current pose via [robofleet](robofleet.csres.utexas.edu) or using the `/set_pose` topic. 
 
+You will also need to set the robot in autonomous mode. To do so, press 'X' on the controller if it's not currently in autonomous mode. 
+
 Then run the waypoint loop script as follows:
 ```
 cd ~/amrl/ut_jackal/scripts/
 python3 waypoint_loop.py --stop_time <number of seconds to stop at each waypoint> --map <name of the waypoints list to run through>
 ```
 The list of waypoints is in the `waypoint_loop.py` script. You can add or modify entries in the waypoint list if you want a different set of waypoints. Note that the map names in this script may not match with the map names in `amrl_maps`. The format of each waypoint is `pos_x, pos_y, quaternion_z, quaternion_w` and these are expressed relative to the map that the localization is currently using for the robot. 
+
+If the robot gets stuck, you can joystick it out of being stuck and then hit 'X' to resume autonomous waypoint looping. 
 
 If you want to run through a triangle of points relative to the robot's current position, we've created a utility script that does so with an empty map. To run this, use:
 `./amrl/ut_jackal/scripts/loop_from_curr_loc.sh`
