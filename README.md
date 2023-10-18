@@ -50,8 +50,8 @@ The list of waypoints is in the `waypoint_loop.py` script. You can add or modify
 
 If the robot gets stuck, you can joystick it out of being stuck and then hit 'X' to resume autonomous waypoint looping. 
 
-If you want to run through a triangle of points relative to the robot's current position, we've created a utility script that does so with an empty map. To run this, use:
-`./amrl/ut_jackal/scripts/loop_from_curr_loc.sh`
+If you want to run through a triangle of points relative to the robot's current position, we've created a utility script that does so with an empty map. To run this, starting from the scripts directory, use:
+`./loop_from_curr_loc.sh`
 
 Note that because this is configured to run without a map, the waypoint locations may drift over time. 
 
