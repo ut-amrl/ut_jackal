@@ -19,3 +19,6 @@
 [submodule "robofleet_client"]
 	path = robofleet_client
 	url = git@github.com:ut-amrl/robofleet_client.git
+[submodule "k4a_ros"]
+	path = k4a_ros
+	url = git@github.com:ut-amrl/k4a_ros.git
