@@ -13,14 +13,14 @@ registered_rgbd = true;
 
 rotation = {
   yaw = 0;
-  pitch = 15;
-  roll = 0;
+  pitch = -2.6;
+  roll = 180;
 };
 
 translation = {
-  x = 0;
-  y = 0;
-  z = .46;
+  x = -0.06;
+  y = 0.05;
+  z = .53;
 };
 
 skip_points = 10;
