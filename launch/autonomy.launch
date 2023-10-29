@@ -1,15 +1,10 @@
+<?xml version="1.0"?>
+
 <launch>
   <!-- <include file="$(find ut_jackal)/launch/velodyne.launch"/> -->
   <include file="$(find ut_jackal)/launch/ouster.launch" />
   <include file="$(find ut_jackal)/launch/kinect.launch" />
   <include file="$(find zed_wrapper)/launch/zed2i.launch" />
-
-  <node name="laserscan_merger"
-      pkg="ut_jackal"
-      type="laserscan_merger"
-      args="--config $(find ut_jackal)/config/laserscan_merger.lua"
-      respawn="true"
-      respawn_delay="2" />
 
   <node name="autonomy_arbiter"
       pkg="ut_jackal"
