@@ -3,9 +3,9 @@ function deg2rad(deg)
 end
 
 NavigationParameters = {
-  laser_topic = {
+  laser_topics = {
     "/velodyne_2dscan",
-    "/kinect_2dscan"
+    "/kinect_laserscan"
   };
   odom_topic = "/jackal_velocity_controller/odom";
   localization_topic = "/localization";
