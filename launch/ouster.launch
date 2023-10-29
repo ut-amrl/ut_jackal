@@ -12,14 +12,14 @@
   <node pkg="tf2_ros"
       type="static_transform_publisher"
       name="static_transform_publisher"
-      args="0 0 0.85 0 0 0 1 base_link os_sensor" />
+      args="0 0 0.35 0 0 0 1 base_link os_sensor" />
 
   <node pkg="ut_jackal"
       type="pointcloud_to_laserscan"
       name="pointcloud_to_laserscan"
       args="--config $(find ut_jackal)/config/ouster_laserscan.lua"
       respawn="true"
-    respawn_delay="2" />
+      respawn_delay="2" />
 
   <node pkg="ut_jackal"
       type="pointcloud_to_laserscan"
