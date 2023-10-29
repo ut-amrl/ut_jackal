@@ -1,3 +1,5 @@
+<?xml version="1.0"?>
+
 <launch>
 
   <include file="$(find ouster_ros)/launch/sensor.launch" >
@@ -7,16 +9,23 @@
       <arg name="timestamp_mode" value="TIME_FROM_ROS_TIME"/> 
   </include>
 
-  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
-     <rosparam command="load" file="$(find ut_jackal)/launch/config/pointcloud_to_laserscan_ouster.yaml" />
-      <remap from="cloud_in" to="/ouster/points"/>
-      <remap from="scan" to="velodyne_2dscan"/>
-  </node>
+  <node pkg="tf2_ros"
+      type="static_transform_publisher"
+      name="static_transform_publisher"
+      args="0 0 0.85 0 0 0 1 base_link os_sensor" />
 
-  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_highbeam">
-     <rosparam command="load" file="$(find ut_jackal)/launch/config/pointcloud_to_highbeam.yaml" />
-      <remap from="cloud_in" to="/ouster/points"/>
-      <remap from="scan" to="velodyne_2dscan_high_beams"/>
-  </node>
+  <node pkg="ut_jackal"
+      type="pointcloud_to_laserscan"
+      name="pointcloud_to_laserscan"
+      args="--config $(find ut_jackal)/config/ouster_laserscan.lua"
+      respawn="true"
+    respawn_delay="2" />
+
+  <node pkg="ut_jackal"
+      type="pointcloud_to_laserscan"
+      name="pointcloud_to_laserscan_highbeam"
+      args="--config $(find ut_jackal)/config/ouster_laserscan_highbeam.lua"
+      respawn="true"
+      respawn_delay="2" />
 
 </launch>
