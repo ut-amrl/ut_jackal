@@ -7,15 +7,12 @@ NavigationParameters = {
     "/velodyne_2dscan",
     "/kinect_laserscan"
   };
+  laser_frame = "base_link";
   odom_topic = "/jackal_velocity_controller/odom";
   localization_topic = "/localization";
   image_topic = "/zed2i/zed_node/left/image_rect_color/compressed";
   init_topic = "/initialpose";
   enable_topic = "/autonomy_arbiter/enabled";
-  laser_loc = {
-    x = 0.065;
-    y = 0;
-  };
   dt = 0.025;
   max_linear_accel = 0.5;
   max_linear_decel = 2;
