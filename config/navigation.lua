@@ -3,7 +3,10 @@ function deg2rad(deg)
 end
 
 NavigationParameters = {
-  laser_topic = "/velodyne_2dscan";
+  laser_topics = {
+    "/velodyne_2dscan",
+    "/kinect_laserscan"
+  };
   odom_topic = "/jackal_velocity_controller/odom";
   localization_topic = "/localization";
   image_topic = "/zed2i/zed_node/left/image_rect_color/compressed";

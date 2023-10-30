@@ -41,6 +41,7 @@
 #include "math/math_util.h"
 #include "util/timer.h"
 #include "ros/ros_helpers.h"
+#include "tf/transform_listener.h"
 
 using math_util::DegToRad;
 using math_util::RadToDeg;
@@ -69,10 +70,10 @@ float max_sq_range_ = FLT_MAX;
 string laser_topic_ = "scan";
 string pointcloud_topic_ = "pointcloud";
 
-static const Eigen::Affine3f frame_tf_ =
-      Eigen::Translation3f(0, 0, 0.85) *
-      Eigen::AngleAxisf(0.0, Vector3f::UnitX());
-const std::string target_frame_("base_link");
+Eigen::Affine3f frame_tf_ = Eigen::Translation3f(0, 0, 0.85) *
+                            Eigen::AngleAxisf(0.0, Vector3f::UnitX());
+string source_frame_("velodyne");
+string target_frame_("base_link");
 
 ros::Publisher scan_publisher_;
 
@@ -91,8 +92,7 @@ void PointcloudCallback(const sensor_msgs::PointCloud2& msg) {
   }
   // Iterate through pointcloud
   for (sensor_msgs::PointCloud2ConstIterator<float>
-      iter_x(msg, "x"),
-      iter_y(msg, "y"), iter_z(msg, "z");
+      iter_x(msg, "x"), iter_y(msg, "y"), iter_z(msg, "z");
       iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
     if (!isfinite(*iter_x) || !isfinite(*iter_y) || !isfinite(*iter_z)) {
       continue;
@@ -124,6 +124,26 @@ void PointcloudCallback(const sensor_msgs::PointCloud2& msg) {
   scan_publisher_.publish(laser_msg_);
 }
 
+void RetrieveStaticTransform() {
+  static tf::TransformListener listener;
+  tf::StampedTransform transform;
+  try {
+    listener.waitForTransform(target_frame_, source_frame_, ros::Time(0),
+                              ros::Duration(1.0));
+    listener.lookupTransform(target_frame_, source_frame_, ros::Time(0),
+                             transform);
+    frame_tf_ = Eigen::Translation3f(transform.getOrigin().getX(),
+                                     transform.getOrigin().getY(),
+                                     transform.getOrigin().getZ()) *
+                Eigen::Quaternionf(transform.getRotation().getW(),
+                                   transform.getRotation().getX(),
+                                   transform.getRotation().getY(),
+                                   transform.getRotation().getZ());
+  } catch (tf::TransformException& ex) {
+    ROS_ERROR("%s", ex.what());
+  }
+}
+
 DEFINE_string(config, "config.lua", "Configuration file");
 
 void LoadConfig() {
@@ -134,8 +154,10 @@ void LoadConfig() {
   CONFIG_FLOAT(height_min, "pointcloud_to_laser.height_min");
   CONFIG_FLOAT(height_max, "pointcloud_to_laser.height_max");
   CONFIG_FLOAT(num_ranges, "pointcloud_to_laser.num_ranges");
-  CONFIG_STRING(pointcloud_topic_, "pointcloud_to_laser.pointcloud_topic");
-  CONFIG_STRING(laser_topic_, "pointcloud_to_laser.laser_topic");
+  CONFIG_STRING(pointcloud_topic, "pointcloud_to_laser.pointcloud_topic");
+  CONFIG_STRING(laser_topic, "pointcloud_to_laser.laser_topic");
+  CONFIG_STRING(source_frame, "pointcloud_to_laser.source_frame");
+  CONFIG_STRING(target_frame, "pointcloud_to_laser.target_frame");
 
   config_reader::ConfigReader reader({FLAGS_config});
 
@@ -150,8 +172,10 @@ void LoadConfig() {
   max_height_ = CONFIG_height_max;
   min_sq_range_ = Sq(CONFIG_range_min);
   max_sq_range_ = Sq(CONFIG_range_max);
-  laser_topic_ = CONFIG_laser_topic_;
-  pointcloud_topic_ = CONFIG_pointcloud_topic_;
+  laser_topic_ = CONFIG_laser_topic;
+  pointcloud_topic_ = CONFIG_pointcloud_topic;
+  source_frame_ = CONFIG_source_frame;
+  target_frame_ = CONFIG_target_frame;
 }
 
 int main(int argc, char** argv) {
@@ -160,6 +184,7 @@ int main(int argc, char** argv) {
   LoadConfig();
   ros::init(argc, argv, "pointcloud_to_laserscan");
   ros::NodeHandle n;
+  RetrieveStaticTransform();
   ros::Subscriber pointcloud_sub =
       n.subscribe(pointcloud_topic_, 1, &PointcloudCallback);
   scan_publisher_ = n.advertise<sensor_msgs::LaserScan>(laser_topic_, 1);

@@ -4,10 +4,10 @@
       pkg="k4a_ros"
       type="depth_to_lidar"
       args="--config_file $(find ut_jackal)/config/kinect.lua
-            --depth false
-            --points true
-            --rgb true
-            --imu false"
+            --depth=false
+            --points=false
+            --rgb=true
+            --imu=false"
       respawn="true"
       respawn_delay="2" />
 
