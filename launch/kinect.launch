@@ -1,0 +1,15 @@
+<launch>
+
+  <node name="k4a_depth_to_lidar"
+      pkg="k4a_ros"
+      type="depth_to_lidar"
+      args="--config_file $(find ut_jackal)/config/kinect.lua
+            --depth=false
+            --points=false
+            --rgb=true
+            --imu=false"
+      respawn="true"
+      respawn_delay="2" />
+
+</launch>
+

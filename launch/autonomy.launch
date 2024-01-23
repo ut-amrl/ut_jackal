@@ -1,6 +1,9 @@
+<?xml version="1.0"?>
+
 <launch>
   <!-- <include file="$(find ut_jackal)/launch/velodyne.launch"/> -->
   <include file="$(find ut_jackal)/launch/ouster.launch" />
+  <include file="$(find ut_jackal)/launch/kinect.launch" />
   <include file="$(find zed_wrapper)/launch/zed2i.launch" />
 
   <node name="autonomy_arbiter"

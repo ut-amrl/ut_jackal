@@ -117,6 +117,20 @@ TARGET_LINK_LIBRARIES(pointcloud_to_laserscan
     ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
 
+ROSBUILD_ADD_EXECUTABLE(laserscan_merger
+    pointcloud_to_laserscan/laserscan_merger_main.cc)
+TARGET_INCLUDE_DIRECTORIES(laserscan_merger PRIVATE
+    config_reader/include
+    amrl_shared_lib
+    ${LUA_INCLUDE_DIR})
+TARGET_LINK_LIBRARIES(laserscan_merger
+    glog
+    gflags
+    amrl_shared_lib
+    roscpp
+    ${LUA_LIBRARIES}
+    ${BUILD_SPECIFIC_LIBRARIES})
+
 INCLUDE_DIRECTORIES(robofleet_client/robofleet_client_lib)
 INCLUDE_DIRECTORIES(robofleet_client/robofleet_client_lib/include)
 ROSBUILD_ADD_EXECUTABLE(robofleet_client
