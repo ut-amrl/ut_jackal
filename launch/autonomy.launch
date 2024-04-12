@@ -19,7 +19,7 @@
       type="websocket"
       respawn="true"
       respawn_delay="2" >
-      <remap from="scan" to="velodyne_2dscan_high_beams"/>
+      <remap from="scan" to="/velodyne_2dscan"/>
   </node>
 
   <node name="enml"
@@ -32,9 +32,10 @@
   <node name="navigation"
       pkg="graph_navigation"
       type="navigation"
-      args="-robot_config $(find ut_jackal)/config/navigation.lua"
+      args="-robot_config $(find ut_jackal)/config/navigation.lua --cw -1.0 --fw -1.0"
       respawn="true"
-      respawn_delay="2" />
+      respawn_delay="2" 
+      output="screen"/>
 
   <node name="robofleet_client"
       pkg="ut_jackal"
